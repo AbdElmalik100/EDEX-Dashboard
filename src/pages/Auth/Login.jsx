@@ -51,7 +51,7 @@ const Login = () => {
                 </div>
                 <div className="grid gap-3">
                     <Label htmlFor="username">اسم المستخدم</Label>
-                    <input type="text" id="username" name="username" placeholder="ادخل رقم الهاتف" {...register('username')} />
+                    <input type="text" id="username" name="username" placeholder="ادخل اسم المستخدم" {...register('username')} />
                     {errors.username && <span className="text-sm text-rose-400 block">{errors.username.message}</span>}
                 </div>
                 <div className="grid gap-3">
