@@ -16,7 +16,7 @@ import { useNavigate, useParams } from "react-router"
 function DataTable({ table, columns }) {
     const navigate = useNavigate()
     const params = useParams()
-    
+
     return (
         <div className="w-full" dir="rtl">
             <div className="overflow-hidden rounded-md border">
@@ -46,7 +46,10 @@ function DataTable({ table, columns }) {
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
                                     className="cursor-pointer"
-                                    onClick={() => navigate(`/${params.eventId}/${row.original.id}`)}
+                                    onClick={(e) => {
+                                        if (e.target.closest("button") || e.target.closest("[role='menuitem']") || e.target.closest("[data-slot='dialog-overlay']")) return;
+                                        navigate(`/${params.eventId}/${row.original.id}`); navigate(`/${params.eventId}/${row.original.id}`)
+                                    }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

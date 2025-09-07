@@ -39,7 +39,7 @@ const DeletePopup = ({item, children}) => {
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button disabled={loading} variant="outline" className="cursor-pointer">الغاء</Button>
+                        <Button disabled={loading} variant="outline" className="cursor-pointer !ring-0">الغاء</Button>
                     </DialogClose>
                     <Button disabled={loading} type="submit" variant="destructive" className="cursor-pointer" onClick={onSubmit}>
                         {
