@@ -13,11 +13,11 @@ const SideBar = () => {
             <NavLink to={'/'} className="logo-wrapper mx-auto">
                 <img src="/images/logo.png" width={128} alt="Logo Image" />
             </NavLink>
-            <ul className="flex flex-col gap-6">
+            <ul className="flex flex-col gap-2">
                 {
                     navLinks.map((link, index) => (
                         <li key={index}>
-                            <NavLink to={link.to} className={`link ${route.pathname.includes('/') ? 'active' : ''}`}>
+                            <NavLink to={link.to} className={`link `}>
                                 <Icon icon={link.icon} fontSize={24} />
                                 <span>{link.name}</span>
                             </NavLink>

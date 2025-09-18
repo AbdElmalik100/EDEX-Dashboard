@@ -10,10 +10,25 @@ export const randomImages = [
 
 export const navLinks = [
     {
-        name: "المعارض و الاحداث",
-        icon: "fluent:calendar-star-20-filled",
-        to: "/"
-    }
+        name: "لوحة التحكم",
+        icon: "material-symbols:dashboard-rounded",
+        to: "/",
+    },
+    {
+        name: "ايديكس",
+        icon: "fa-solid:fighter-jet",
+        to: "/edex",
+    },
+    {
+        name: "الفروسية",
+        icon: "fa7-solid:horse-head",
+        to: "/equestrianism",
+    },
+    {
+        name: "النجم الساطع",
+        icon: "material-symbols:star-shine-rounded",
+        to: "/brightstar",
+    },
 ]
 
 export const events = [

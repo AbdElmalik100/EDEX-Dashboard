@@ -1,10 +1,11 @@
-import Delegations from '../components/Delegations/Delegations'
-import Stats from '../components/Stats'
+import Delegations from "../../components/Delegations/Delegations"
+import Stats from "../../components/Stats"
+
 
 const EventDetails = () => {
     return (
         <div className='content'>
-            <Stats />
+            {/* <Stats /> */}
             <Delegations />
         </div>
     )

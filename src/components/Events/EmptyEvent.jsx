@@ -1,6 +1,6 @@
 import AddEvent from "./AddEvent"
 
-export const EmptyEvent = () => {
+const EmptyEvent = () => {
     return (
         <div className='flex flex-col gap-4 items-center py-18'>
             <img src="/images/event.png" width={128} alt="Event Image" />
@@ -14,3 +14,6 @@ export const EmptyEvent = () => {
         </div>
     )
 }
+
+
+export default EmptyEvent

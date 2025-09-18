@@ -23,39 +23,39 @@ import DeletePopup from "../DeletePopup"
 
 const data = [
     {
-        id: "m5gr84i9",
+        id: "m5gr54i9",
         nationality: 'قطري',
         delegationHead: "رائد / احمد الهجري",
         membersCount: "75",
         hall: "صالة 3",
         moveType: "مغادرة",
-        date: new Date().toLocaleDateString(),
+        date: new Date('9/9/2025').toLocaleDateString(),
         time: new Date().toLocaleTimeString(),
         receptor: 'ملازم اول / محمد العجمي',
         destination: 'مغرب',
         shipments: 'لا يوجد',
     },
     {
-        id: "m5gr84i9",
+        id: "m5gr89i9",
         nationality: 'افريقي',
         delegationHead: "رائد / احمد الهجري",
         membersCount: "75",
         hall: "صالة 3",
         moveType: "وصول",
-        date: new Date().toLocaleDateString(),
+        date: new Date('9/12/2025').toLocaleDateString(),
         time: new Date().toLocaleTimeString(),
         receptor: 'ملازم اول / محمد العجمي',
         destination: 'مصر',
         shipments: 'لا يوجد',
     },
     {
-        id: "m5gr84i9",
+        id: "m5gr8419",
         nationality: 'امريكي',
         delegationHead: "رائد / احمد الهجري",
         membersCount: "75",
         hall: "صالة 3",
         moveType: "مغادرة",
-        date: new Date().toLocaleDateString(),
+        date: new Date('9/12/2025').toLocaleDateString(),
         time: new Date().toLocaleTimeString(),
         receptor: 'ملازم اول / محمد العجمي',
         destination: 'سودان',
@@ -203,7 +203,7 @@ const Delegations = () => {
         },
     })
     return (
-        <div className='border p-4 border-neutral-300 mt-8 rounded-2xl bg-white'>
+        <div className='border p-4 border-neutral-300 rounded-2xl bg-white'>
             <DelegationTableToolbar table={table} data={data} />
             <DataTable table={table} columns={columns} />
         </div >

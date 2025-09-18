@@ -21,6 +21,7 @@ const DelegationFilter = ({ table, data }) => {
         nationality: '',
         destination: '',
         moveType: '',
+        date: '',
     })
 
     const applyFilter = (val, fieldName) => {
@@ -33,6 +34,7 @@ const DelegationFilter = ({ table, data }) => {
             nationality: '',
             destination: '',
             moveType: '',
+            date: '',
         })
         table.resetColumnFilters()
     }
@@ -103,6 +105,26 @@ const DelegationFilter = ({ table, data }) => {
                                     }
                                 </SelectContent>
                             </Select>
+                        </div>
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="height">التاريخ</Label>
+                            {/* <Select dir='rtl' value={filters.moveType} onValueChange={val => applyFilter(val, 'date')}>
+                                <SelectTrigger className="w-full !ring-0 col-span-2">
+                                    <SelectValue placeholder="نوع الحركة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {
+                                        moveTypeOptions.map((option, index) => (
+                                            <SelectItem key={index} value={option.value}>{option.label}</SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select> */}
+                            <input className="col-span-2" type="date" id="date" name="date" value={filters.date} onChange={e => {
+                                setFilters({...filters, date: new Date(e.target.value).toLocaleDateString()})
+                                console.log(new Date(e.target.value).toLocaleDateString())
+                                applyFilter(new Date(e.target.value).toLocaleDateString(), 'date')
+                            }} />
                         </div>
                     </div>
                     {isFiltered && <Button className="w-full cursor-pointer" onClick={clearFilter}>حذف جميع الفلاتر</Button>}
