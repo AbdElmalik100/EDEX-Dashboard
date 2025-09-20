@@ -18,59 +18,12 @@ import {
 import { useState } from "react"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "../DataTable"
-
 import DelegationTableToolbar from "./DelegationTableToolbar"
 import DeletePopup from "../DeletePopup"
 import { dateRangeFilter } from "../../utils"
+import { delegations } from "../../data"
 
-const data = [
-    {
-        id: "m5gr54i9",
-        nationality: 'قطري',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 1",
-        airline: "اير كايرو",
-        flightNumber: "768",
-        moveType: "مغادرة",
-        date: new Date('9/9/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'مغرب',
-        shipments: 'لا يوجد',
-    },
-    {
-        id: "m5gr89i9",
-        nationality: 'افريقي',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 2",
-        airline: "مصر للطيران",
-        flightNumber: "125",
-        moveType: "وصول",
-        date: new Date('9/12/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'مصر',
-        shipments: 'لا يوجد',
-    },
-    {
-        id: "m5gr8419",
-        nationality: 'امريكي',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 3",
-        airline: "مصر للطيران",
-        flightNumber: "453",
-        moveType: "مغادرة",
-        date: new Date('9/13/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'سودان',
-        shipments: 'لا يوجد',
-    },
-]
-
+delegations
 
 export const columns = [
     {
@@ -144,7 +97,7 @@ export const columns = [
     {
         accessorKey: "date",
         header: () => <div className="text-start">التاريخ</div>,
-        // filterFn: dateRangeFilter,
+        filterFn: dateRangeFilter,
     },
     {
         accessorKey: "time",
@@ -198,7 +151,7 @@ const Delegations = () => {
     const [globalFilter, setGlobalFilter] = useState('')
     
     const table = useReactTable({
-        data,
+        data: delegations,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -221,7 +174,7 @@ const Delegations = () => {
     })
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-            <DelegationTableToolbar table={table} data={data} />
+            <DelegationTableToolbar table={table} data={delegations} />
             <DataTable table={table} columns={columns} clickableRow={true} />
         </div >
     )

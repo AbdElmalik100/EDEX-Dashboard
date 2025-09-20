@@ -19,32 +19,9 @@ import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "../DataTable"
 import DeletePopup from "../DeletePopup"
 import MembersTableToolbar from "./MembersTableToolbar"
+import { members } from "../../data"
 
-const data = [
-    {
-        id: "m5gr8419",
-        rank: 'عقيد',
-        name: "احمد عبدالمنعم ",
-        role: "رئيس الوفد",
-        nationality: "امريكي",
-    },
-    {
-        id: "m5gr8419",
-        rank: 'مقدم',
-        name: "احمد عباس",
-        role: "رئيس الوفد",
-        nationality: "امريكي",
-    },
-    {
-        id: "m5gr8419",
-        rank: 'نقيب',
-        name: "محمود احمد خالد",
-        role: "مسافر",
-        nationality: "امريكي",
-    },
-]
-
-
+members
 export const columns = [
     {
         id: "select",
@@ -126,7 +103,7 @@ const Members = () => {
     const [globalFilter, setGlobalFilter] = useState('')
     
     const table = useReactTable({
-        data,
+        data: members,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -149,7 +126,7 @@ const Members = () => {
     })
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-            <MembersTableToolbar table={table} data={data} />
+            <MembersTableToolbar table={table} data={members} />
             <DataTable table={table} columns={columns} />
         </div >
     )
