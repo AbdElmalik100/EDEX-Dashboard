@@ -1,12 +1,11 @@
 import {
-    filterFns,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -18,56 +17,30 @@ import {
 import { useState } from "react"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "../DataTable"
-
-import DelegationTableToolbar from "./DelegationTableToolbar"
 import DeletePopup from "../DeletePopup"
-import { dateRangeFilter } from "../../utils"
+import MembersTableToolbar from "./MembersTableToolbar"
 
 const data = [
     {
-        id: "m5gr54i9",
-        nationality: 'قطري',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 1",
-        airline: "اير كايرو",
-        flightNumber: "768",
-        moveType: "مغادرة",
-        date: new Date('9/9/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'مغرب',
-        shipments: 'لا يوجد',
-    },
-    {
-        id: "m5gr89i9",
-        nationality: 'افريقي',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 2",
-        airline: "مصر للطيران",
-        flightNumber: "125",
-        moveType: "وصول",
-        date: new Date('9/12/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'مصر',
-        shipments: 'لا يوجد',
+        id: "m5gr8419",
+        rank: 'عقيد',
+        name: "احمد عبدالمنعم ",
+        role: "رئيس الوفد",
+        nationality: "امريكي",
     },
     {
         id: "m5gr8419",
-        nationality: 'امريكي',
-        delegationHead: "رائد / احمد الهجري",
-        membersCount: "75",
-        hall: "مطار 3",
-        airline: "مصر للطيران",
-        flightNumber: "453",
-        moveType: "مغادرة",
-        date: new Date('9/13/2025').toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        receptor: 'ملازم اول / محمد العجمي',
-        destination: 'سودان',
-        shipments: 'لا يوجد',
+        rank: 'مقدم',
+        name: "احمد عباس",
+        role: "رئيس الوفد",
+        nationality: "امريكي",
+    },
+    {
+        id: "m5gr8419",
+        rank: 'نقيب',
+        name: "محمود احمد خالد",
+        role: "مسافر",
+        nationality: "امريكي",
     },
 ]
 
@@ -102,65 +75,20 @@ export const columns = [
         enableHiding: false,
     },
     {
-        accessorKey: "nationality",
+        accessorKey: "rank",
         header: () => <div className="text-start">الجنسية</div>,
     },
     {
-        accessorKey: "delegationHead",
-        header: ({ column }) => {
-            return (
-                <div className="text-start">
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        رئيس الوفد
-                        <ArrowUpDown />
-                    </Button>
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "membersCount",
+        accessorKey: "name",
         header: () => <div className="text-start">عدد الاعضاء</div>,
     },
     {
-        accessorKey: "hall",
+        accessorKey: "role",
         header: () => <div className="text-start">المطار</div>,
     },
     {
-        accessorKey: "airline",
-        header: () => <div className="text-start">شركة الطيران</div>,
-    },
-    {
-        accessorKey: "flightNumber",
-        header: () => <div className="text-start">رقم الرحلة</div>,
-    },
-    {
-        accessorKey: "moveType",
-        header: () => <div className="text-start">نوع الحركة</div>,
-    },
-    {
-        accessorKey: "date",
-        header: () => <div className="text-start">التاريخ</div>,
-        // filterFn: dateRangeFilter,
-    },
-    {
-        accessorKey: "time",
-        header: () => <div className="text-start">سعت</div>,
-    },
-    {
-        accessorKey: "receptor",
-        header: () => <div className="text-start">المستقبل</div>,
-    },
-    {
-        accessorKey: "destination",
-        header: () => <div className="text-start">وجهة الرحلة</div>,
-    },
-    {
-        accessorKey: "shipments",
-        header: () => <div className="text-start">الشحنات</div>,
+        accessorKey: "nationality",
+        header: () => <div className="text-start">الجنسية</div>,
     },
     {
         id: "actions",
@@ -190,7 +118,7 @@ export const columns = [
         },
     },
 ]
-const Delegations = () => {
+const Members = () => {
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
     const [columnVisibility, setColumnVisibility] = useState({})
@@ -221,10 +149,10 @@ const Delegations = () => {
     })
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-            <DelegationTableToolbar table={table} data={data} />
-            <DataTable table={table} columns={columns} clickableRow={true} />
+            <MembersTableToolbar table={table} data={data} />
+            <DataTable table={table} columns={columns} />
         </div >
     )
 }
 
-export default Delegations
+export default Members

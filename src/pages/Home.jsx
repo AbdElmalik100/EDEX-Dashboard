@@ -4,7 +4,7 @@ import Stats from '../components/Stats'
 const Home = () => {
     return (
         <div className='content'>
-            <Stats />
+            <Stats delegationNum={90} militaryDelegationNum={64} civilDelegationNum={23} memebersNum={256} />
             <div className='mt-8 bg-white border border-neutral-300 rounded-2xl p-6'>
                 {/* <EmptyEvent /> */}
                 <div className='flex items-center gap-4 justify-between mb-6'>

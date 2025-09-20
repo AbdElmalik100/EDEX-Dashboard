@@ -34,6 +34,8 @@ const AddDelegation = () => {
         delegationHead: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         membersCount: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         hall: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        airline: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        flightNumber: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         moveType: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         date: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         time: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
@@ -82,7 +84,7 @@ const AddDelegation = () => {
                         <span>اضافة وفد جديد</span>
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[725px] [&_[data-slot='dialog-close']]:!right-[95%]">
+                <DialogContent className="sm:max-w-[725px] max-h-[675px] [&_[data-slot='dialog-close']]:!right-[95%] overflow-auto">
                     <DialogHeader className="!text-start !py-2">
                         <DialogTitle>إضافة وفد جديد</DialogTitle>
                         <DialogDescription>
@@ -109,10 +111,10 @@ const AddDelegation = () => {
                                 {errors.membersCount && <span className="text-sm text-rose-400 block">{errors.membersCount.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="hall">الصالة</Label>
+                                <Label htmlFor="hall">المطار</Label>
                                 <Select dir='rtl' value={watch('hall')} onValueChange={val => setValue('hall', val, { shouldValidate: true })}>
                                     <SelectTrigger className="w-full !ring-0 col-span-2">
-                                        <SelectValue placeholder="وجهة الرحلة" />
+                                        <SelectValue placeholder="اختر المطار" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {
@@ -125,11 +127,23 @@ const AddDelegation = () => {
                                 {errors.hall && <span className="text-sm text-rose-400 block">{errors.hall.message}</span>}
                             </div>
                         </div>
+                        <div className="w-full items-start flex gap-4">
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="airline">شركة الطيران</Label>
+                                <input type="text" id="airline" name="airline" placeholder="ادخل شركة الطيران" {...register('airline')} />
+                                {errors.airline && <span className="text-sm text-rose-400 block">{errors.airline.message}</span>}
+                            </div>
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="flightNumber">رقم الرحلة</Label>
+                                <input type="text" id="flightNumber" name="flightNumber" placeholder="ادخل رقم الرحلة" {...register('flightNumber')} />
+                                {errors.flightNumber && <span className="text-sm text-rose-400 block">{errors.flightNumber.message}</span>}
+                            </div>
+                        </div>
                         <div className="grid gap-3 w-full">
-                            <Label htmlFor="moveType">الصالة</Label>
+                            <Label htmlFor="moveType">نوع الحركة</Label>
                             <Select dir='rtl' value={watch('moveType')} onValueChange={val => setValue('moveType', val, { shouldValidate: true })}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="نوع الحركة" />
+                                    <SelectValue placeholder="اختر نوع الحركة" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {
@@ -148,7 +162,7 @@ const AddDelegation = () => {
                                 {errors.date && <span className="text-sm text-rose-400 block">{errors.date.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="time">الساعة</Label>
+                                <Label htmlFor="time">سعت</Label>
                                 <input type="time" id="time" name="time" value={watch('time')} {...register('time')} />
                                 {errors.time && <span className="text-sm text-rose-400 block">{errors.time.message}</span>}
                             </div>

@@ -1,12 +1,12 @@
 import { Icon } from '@iconify/react/dist/iconify.js'
 
-const Stats = () => {
+const Stats = ({delegationNum, militaryDelegationNum, civilDelegationNum, memebersNum}) => {
     return (
         <div className='flex gap-2 justify-between'>
             <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
                 <div className='flex flex-col gap-1'>
                     <span className='text-neutral-600'>عدد الوفود</span>
-                    <h2 className='text-sky-700 font-bold text-5xl'>80</h2>
+                    <h2 className='text-sky-700 font-bold text-5xl'>{delegationNum}</h2>
                     <span className='text-neutral-400 text-xs'>
                         اخر تحديث منذ {new Date().toLocaleDateString()}
                     </span>
@@ -18,7 +18,7 @@ const Stats = () => {
             <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
                 <div className='flex flex-col gap-1'>
                     <span className='text-neutral-600'>عدد الوفود العسكرية</span>
-                    <h2 className='text-orange-700 font-bold text-5xl'>50</h2>
+                    <h2 className='text-orange-700 font-bold text-5xl'>{militaryDelegationNum}</h2>
                     <span className='text-neutral-400 text-xs'>
                         اخر تحديث منذ {new Date().toLocaleDateString()}
                     </span>
@@ -30,7 +30,7 @@ const Stats = () => {
             <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
                 <div className='flex flex-col gap-1'>
                     <span className='text-neutral-600'>عدد الوفود المدنية</span>
-                    <h2 className='text-lime-700 font-bold text-5xl'>30</h2>
+                    <h2 className='text-lime-700 font-bold text-5xl'>{civilDelegationNum}</h2>
                     <span className='text-neutral-400 text-xs'>
                         اخر تحديث منذ {new Date().toLocaleDateString()}
                     </span>
@@ -42,7 +42,7 @@ const Stats = () => {
             <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
                 <div className='flex flex-col gap-1'>
                     <span className='text-neutral-600'>عدد الاعضاء</span>
-                    <h2 className='text-purple-700 font-bold text-5xl'>1075</h2>
+                    <h2 className='text-purple-700 font-bold text-5xl'>{memebersNum}</h2>
                     <span className='text-neutral-400 text-xs'>
                         اخر تحديث منذ {new Date().toLocaleDateString()}
                     </span>

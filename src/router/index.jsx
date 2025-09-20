@@ -5,8 +5,9 @@ import Home from '../pages/Home'
 import Login from '../pages/Auth/Login'
 import Edex from '../pages/EDEX/Edex'
 import Equestrianism from '../pages/Equestrianism/Equestrianism'
-import EventDetails from '../pages/EDEX/EventDetails'
+import EdexDetails from '../pages/EDEX/EdexDetails'
 import Brightstar from '../pages/Brightstar/Brightstar'
+import EdexMembers from '../pages/EDEX/EdexMembers'
 
 const AppRouter = () => {
     return (
@@ -17,7 +18,8 @@ const AppRouter = () => {
             <Route path='/' element={<Dashboard />}>
                 <Route index element={<Home />} />
                 <Route path='/edex' element={<Edex />} />
-                <Route path='/edex/:eventId' element={<EventDetails />} />
+                <Route path='/edex/:eventId' element={<EdexDetails />} />
+                <Route path='/edex/:eventId/:delegationId' element={<EdexMembers />} />
                 <Route path='/equestrianism' element={<Equestrianism />} />
                 <Route path='/brightstar' element={<Brightstar />} />
             </Route>

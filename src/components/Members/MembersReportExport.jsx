@@ -1,5 +1,4 @@
 import { exportToExcel, exportToPDF } from '../../utils'
-import DelegationReportPDF from '../PDF Templates/DelegationReportPDF'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import {
     DropdownMenu,
@@ -8,8 +7,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import MembersReportPDF from '../PDF Templates/MembersReportPDF'
 
-const DelegationReportExport = ({data}) => {
+const MembersReportExport = ({data}) => {
     return (
         <DropdownMenu dir='rtl'>
             <DropdownMenuTrigger asChild>
@@ -19,7 +19,7 @@ const DelegationReportExport = ({data}) => {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={e => exportToPDF(<DelegationReportPDF data={data} />, "EDEX - Members report.pdf")}>
+                <DropdownMenuItem onSelect={e => exportToPDF(<MembersReportPDF data={data} />, "EDEX - Members report.pdf")}>
                     <Icon icon={'hugeicons:pdf-02'} className="text-[#ef5350]" />
                     <span>PDF file</span>
                 </DropdownMenuItem>
@@ -32,4 +32,4 @@ const DelegationReportExport = ({data}) => {
     )
 }
 
-export default DelegationReportExport
+export default MembersReportExport

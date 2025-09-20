@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 10,
     textAlign: "center",
-    width: '10%'
+    width: '100%'
   },
   headerCell: {
     backgroundColor: "#f0f0f0",
@@ -73,21 +73,13 @@ const cellWidths = ["10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%
 
 // ✅ Headers in Arabic
 const headers = [
+  "الرتبة",
+  "الاسم",
+  "الوظيفة",
   "الجنسية",
-  "رئيس الوفد",
-  "عدد الاعضاء",
-  "الصالة",
-  "شركة الطيران",
-  "رقم الرحلة",
-  "نوع الحركة",
-  "التاريخ",
-  "الساعة",
-  "المستقبل",
-  "وجهة الرحلة",
-  "الشحنات"
 ];
 
-const DelegationReportPDF = ({ data }) => {
+const MembersReportPDF = ({ data }) => {
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
@@ -118,13 +110,13 @@ const DelegationReportPDF = ({ data }) => {
               </View>
           </View>
         </View>
-        <Text style={styles.header}>تقرير الوفود</Text>
+        <Text style={styles.header}>تقرير الاعضاء</Text>
 
         <View style={styles.table}>
           {/* Header row */}
           <View style={styles.row}>
             {headers.map((h, i) => (
-              <Text key={i} style={[styles.cell, styles.headerCell, { width: '10%' }]}>
+              <Text key={i} style={[styles.cell, styles.headerCell, { width: '100%' }]}>
                 {h}
               </Text>
             ))}
@@ -133,25 +125,16 @@ const DelegationReportPDF = ({ data }) => {
           {/* Data rows */}
           {data.map((row, i) => (
             <View style={styles.row} key={i}>
+              <Text style={[styles.cell]}>{row.rank}</Text>
+              <Text style={[styles.cell]}>{row.name}</Text>
+              <Text style={[styles.cell]}>{row.role}</Text>
               <Text style={[styles.cell]}>{row.nationality}</Text>
-              <Text style={[styles.cell]}>{row.delegationHead}</Text>
-              <Text style={[styles.cell]}>{row.membersCount}</Text>
-              <Text style={[styles.cell]}>{row.hall}</Text>
-              <Text style={[styles.cell]}>{row.airline}</Text>
-              <Text style={[styles.cell]}>{row.flightNumber}</Text>
-              <Text style={[styles.cell]}>{row.moveType}</Text>
-              <Text style={[styles.cell]}>{row.date}</Text>
-              <Text style={[styles.cell]}>{row.time}</Text>
-              <Text style={[styles.cell]}>{row.receptor}</Text>
-              <Text style={[styles.cell]}>{row.destination}</Text>
-              <Text style={[styles.cell]}>{row.shipments}</Text>
             </View>
           ))}
         </View>
-
       </Page>
     </Document>
   )
 }
 
-export default DelegationReportPDF
+export default MembersReportPDF

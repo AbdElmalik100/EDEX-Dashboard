@@ -13,7 +13,7 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router"
 
 
-function DataTable({ table, columns }) {
+function DataTable({ table, columns, clickableRow = false }) {
     const navigate = useNavigate()
     const route = useLocation()
     
@@ -45,10 +45,12 @@ function DataTable({ table, columns }) {
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
-                                    className="cursor-pointer"
+                                    className={clickableRow && "cursor-pointer"}
                                     onClick={(e) => {
-                                        if (e.target.closest("button") || e.target.closest("[role='menuitem']") || e.target.closest("[data-slot='dialog-overlay']")) return;
-                                        navigate(`${route.pathname}/${row.original.id}`);
+                                        if(clickableRow) {
+                                            if (e.target.closest("button") || e.target.closest("[role='menuitem']") || e.target.closest("[data-slot='dialog-overlay']")) return;
+                                            navigate(`${route.pathname}/${row.original.id}`);
+                                        } else return
                                     }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
