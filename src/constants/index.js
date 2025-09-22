@@ -1,11 +1,8 @@
 
 export const randomImages = [
     '/images/img_1.png',
-    '/images/img_2.png',
-    '/images/img_3.webp',
     '/images/img_4.jpeg',
     '/images/img_5.jpg',
-    '/images/img_6.jpeg',
 ]
 
 export const navLinks = [

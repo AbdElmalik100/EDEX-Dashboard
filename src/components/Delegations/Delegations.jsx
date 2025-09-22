@@ -20,10 +20,9 @@ import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "../DataTable"
 import DelegationTableToolbar from "./DelegationTableToolbar"
 import DeletePopup from "../DeletePopup"
-import { dateRangeFilter } from "../../utils"
+// import { dateRangeFilter } from "../../utils"
 import { delegations } from "../../data"
 
-delegations
 
 export const columns = [
     {
@@ -97,7 +96,22 @@ export const columns = [
     {
         accessorKey: "date",
         header: () => <div className="text-start">التاريخ</div>,
-        filterFn: dateRangeFilter,
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue) return true
+            const rowDate = new Date(row.getValue(columnId)).toLocaleDateString()
+            // Date range
+            if (filterValue.start || filterValue.end) {
+                const { start, end } = filterValue                
+                if (start && rowDate < start) return false
+                if (end && rowDate > end) return false
+                return true
+            }
+            // Single date
+            if (filterValue) {
+                return rowDate === filterValue
+            }
+            return true
+        },
     },
     {
         accessorKey: "time",
@@ -172,6 +186,7 @@ const Delegations = () => {
             globalFilter,
         },
     })
+    
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
             <DelegationTableToolbar table={table} data={delegations} />

@@ -11,10 +11,10 @@ import {
 import { formatArabicDate } from "../../utils";
 
 // ✅ Register Arabic font
-Font.register({
-  family: "Cairo",
-  src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
-});
+// Font.register({
+//   family: "Cairo",
+//   src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
+// });
 
 // ✅ Styles
 const styles = StyleSheet.create({
@@ -87,7 +87,7 @@ const headers = [
 
 const DelegationReportPDF = ({ data }) => {
   return (
-    <Document>
+    <Document key={'delegation-report'} id={'delegation-report'}>
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Logos + Title Row */}
         <View style={styles.headerRow}>
@@ -119,7 +119,6 @@ const DelegationReportPDF = ({ data }) => {
         <Text style={styles.header}>تقرير الوفود</Text>
 
         <View style={styles.table}>
-          {/* Header row */}
           <View style={styles.row}>
             {headers.map((h, i) => (
               <Text key={i} style={[styles.cell, styles.headerCell, { width: '10%' }]}>
@@ -128,7 +127,6 @@ const DelegationReportPDF = ({ data }) => {
             ))}
           </View>
 
-          {/* Data rows */}
           {data.map((row, i) => (
             <View style={styles.row} key={i}>
               <Text style={[styles.cell]}>{row.nationality}</Text>

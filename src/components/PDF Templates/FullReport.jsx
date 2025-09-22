@@ -11,10 +11,10 @@ import {
 import { formatArabicDate } from "../../utils";
 
 // ✅ Register Arabic font
-Font.register({
-  family: "Cairo",
-  src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
-});
+// Font.register({
+//   family: "Cairo",
+//   src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
+// });
 
 // ✅ Styles
 const styles = StyleSheet.create({
@@ -95,7 +95,7 @@ const headers = [
 
 const FullReport = ({ data }) => {
   return (
-    <Document>
+    <Document key={'full-report'}>
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Logos + Title Row */}
         <View style={styles.headerRow}>
@@ -130,14 +130,11 @@ const FullReport = ({ data }) => {
 {/* Loop over nationalities */}
         {Object.entries(data).map(([nationality, members], idx) => (
           <View key={idx} style={styles.nationalityBox}>
-            {/* Delegation info (from first member's delegation) */}
             <Text style={styles.delegationInfo}>
               {`الوفد: ${nationality} - ${members[0].delegation.delegationHead}`}
             </Text>
 
-            {/* Table */}
             <View style={styles.table}>
-              {/* Header row */}
               <View style={styles.row}>
                 {headers.map((h, i) => (
                   <Text
@@ -149,7 +146,6 @@ const FullReport = ({ data }) => {
                 ))}
               </View>
 
-              {/* Members */}
               {members.map((row, i) => (
                 <View style={styles.row} key={i}>
                   <Text style={styles.cell}>{row.rank}</Text>

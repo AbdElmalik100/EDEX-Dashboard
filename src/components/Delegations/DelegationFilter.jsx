@@ -32,9 +32,9 @@ const DelegationFilter = ({ table, data }) => {
     }
 
     const applyDateRangeFilter = (start, end) => {
-        const range = (!start && !end) ? undefined : { start: new Date(start).toLocaleDateString(), end: new Date(end).toLocaleTimeString() }
+        const range = (!start && !end) ? undefined : { start: new Date(start).toLocaleDateString(), end: new Date(end).toLocaleDateString() }
         table.getColumn("date")?.setFilterValue(range)
-        setFilters({ ...filters, startDate: start, endDate: end })        
+        setFilters({ ...filters, startDate: start, endDate: end, date: '' })        
     }
 
     const clearFilter = () => {
@@ -126,7 +126,7 @@ const DelegationFilter = ({ table, data }) => {
                                 value={filters.date} 
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
-                                    setFilters({ ...filters, date: formattedDate });
+                                    setFilters({ ...filters, date: formattedDate, startDate: '', endDate: '' });
                                     table.getColumn('date')?.setFilterValue(formattedDate === "" ? undefined : new Date(formattedDate).toLocaleDateString())
                                 }} 
                             />

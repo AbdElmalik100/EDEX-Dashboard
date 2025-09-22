@@ -9,6 +9,7 @@ import EdexDetails from '../pages/EDEX/EdexDetails'
 import Brightstar from '../pages/Brightstar/Brightstar'
 import EdexMembers from '../pages/EDEX/EdexMembers'
 
+
 const AppRouter = () => {
     return (
         <Routes>

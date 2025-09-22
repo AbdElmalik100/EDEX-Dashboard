@@ -2,9 +2,13 @@ import AddDelegation from "./AddDelegation"
 import { Input } from "@/components/ui/input"
 import DelegationReportExport from "./DelegationReportExport"
 import DelegationFilter from "./DelegationFilter"
+import { useMemo } from "react"
 
 
 const DelegationTableToolbar = ({ table, data }) => {
+    const filteredData = table.getState().columnFilters.length === 0 
+        ? data
+        : table.getFilteredRowModel().rows.map(row => row.original)
     
 
     return (
@@ -19,7 +23,7 @@ const DelegationTableToolbar = ({ table, data }) => {
             />
             <div className="flex items-center gap-2">
                 <DelegationFilter table={table} data={data} />
-                <DelegationReportExport data={data} />
+                <DelegationReportExport data={filteredData} />
                 <AddDelegation />
             </div>
         </div>
