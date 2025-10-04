@@ -3,12 +3,19 @@ import { NavLink } from "react-router"
 import { events } from "../../constants"
 
 
-const EventsList = () => {
+const EventsList = ({ events: customEvents, categoryId }) => {
+    // استخدام البيانات الممررة أو البيانات الافتراضية
+    const eventsData = customEvents || events;
+    
     return (
         <div className="flex flex-col gap-4">
             {
-                events.map((event, index) => (
-                    <NavLink key={index} to={`/edex/${index}`} className="box bg-white w-full border border-neutral-300 rounded-xl flex flex-col transition-all ease-out hover:shadow cursor-pointer hover:border-primary-400">
+                eventsData.map((event, index) => (
+                    <NavLink 
+                        key={event.id || index} 
+                        to={categoryId ? `/category/${categoryId}/event/${event.id || index}` : `/edex/${index}`} 
+                        className="box bg-white w-full border border-neutral-300 rounded-xl flex flex-col transition-all ease-out hover:shadow cursor-pointer hover:border-primary-400"
+                    >
                         <div className="w-full border-b p-6 border-neutral-300 flex items-center gap-4 pb-6">
                             <div className="w-18 h-18 rounded-full grid place-items-center bg-gradient-to-b from-[#F4CB00] to-[#F4B400]">
                                 <Icon icon="stash:calendar-star-solid" fontSize={42} className="text-white" />

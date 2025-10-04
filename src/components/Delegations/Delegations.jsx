@@ -26,32 +26,37 @@ import { delegations } from "../../data"
 
 export const columns = [
     {
-        id: "select",
-        header: ({ table }) => (
-            <div className="text-start ps-2">
-                <Checkbox
-                    className="cursor-pointer"
-                    checked={
-                        table.getIsAllPageRowsSelected() ||
-                        (table.getIsSomePageRowsSelected() && "indeterminate")
-                    }
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label="Select all"
-                />
-            </div>
-        ),
-        cell: ({ row }) => (
-            <div className="text-start ps-2">
-                <Checkbox
-                    className="cursor-pointer"
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                />
-            </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
+        accessorKey: "delegationStatus",
+        header: () => <div className="text-start">حالة الوفد</div>,
+        cell: ({ row }) => {
+            const status = row.getValue("delegationStatus")
+            let statusIcon = ""
+            let iconColor = ""
+            
+            switch(status) {
+                case "all_departed":
+                    statusIcon = "material-symbols:check-circle"
+                    iconColor = "text-lime-600"
+                    break
+                case "partial_departed":
+                    statusIcon = "material-symbols:schedule"
+                    iconColor = "text-primary-600"
+                    break
+                case "not_departed":
+                    statusIcon = "material-symbols:cancel"
+                    iconColor = "text-red-600"
+                    break
+                default:
+                    statusIcon = "material-symbols:cancel"
+                    iconColor = "text-red-600"
+            }
+            
+            return (
+                <div className="px-1 py-1 rounded-lg text-lg font-medium text-center bg-gray-200 w-fit">
+                    <Icon icon={statusIcon} fontSize={20} className={iconColor} />
+                </div>
+            )
+        },
     },
     {
         accessorKey: "nationality",
@@ -78,23 +83,19 @@ export const columns = [
         header: () => <div className="text-start">عدد الاعضاء</div>,
     },
     {
-        accessorKey: "hall",
+        accessorKey: "arrivalInfo.arrivalHall",
         header: () => <div className="text-start">المطار</div>,
     },
     {
-        accessorKey: "airline",
+        accessorKey: "arrivalInfo.arrivalAirline",
         header: () => <div className="text-start">شركة الطيران</div>,
     },
     {
-        accessorKey: "flightNumber",
+        accessorKey: "arrivalInfo.arrivalFlightNumber",
         header: () => <div className="text-start">رقم الرحلة</div>,
     },
     {
-        accessorKey: "moveType",
-        header: () => <div className="text-start">نوع الحركة</div>,
-    },
-    {
-        accessorKey: "date",
+        accessorKey: "arrivalInfo.arrivalDate",
         header: () => <div className="text-start">التاريخ</div>,
         filterFn: (row, columnId, filterValue) => {
             if (!filterValue) return true
@@ -114,19 +115,19 @@ export const columns = [
         },
     },
     {
-        accessorKey: "time",
+        accessorKey: "arrivalInfo.arrivalTime",
         header: () => <div className="text-start">سعت</div>,
     },
     {
-        accessorKey: "receptor",
+        accessorKey: "arrivalInfo.arrivalReceptor",
         header: () => <div className="text-start">المستقبل</div>,
     },
     {
-        accessorKey: "destination",
-        header: () => <div className="text-start">وجهة الرحلة</div>,
+        accessorKey: "arrivalInfo.arrivalDestination",
+        header: () => <div className="text-start">الوجهة</div>,
     },
     {
-        accessorKey: "shipments",
+        accessorKey: "arrivalInfo.arrivalShipments",
         header: () => <div className="text-start">الشحنات</div>,
     },
     {

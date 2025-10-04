@@ -14,7 +14,7 @@ import { formatArabicDate } from "../../utils";
 // ✅ Register Arabic font
 Font.register({
   family: "Cairo",
-  src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
+  src: "/fonts/Cairo-Regular.ttf",
 });
 
 // ✅ Styles
@@ -26,13 +26,12 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    justifyContent: "space-between", // logo left + logo right
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20
   },
   logo: {
     width: 80,
-    // height: 80
   },
   header: {
     fontSize: 24,
@@ -46,7 +45,8 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderRightWidth: 0,
-    borderBottomWidth: 0
+    borderBottomWidth: 0,
+    marginBottom: 20
   },
   row: {
     flexDirection: "row-reverse" // ✅ make it RTL
@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0,
     borderTopWidth: 0,
     padding: 5,
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
     width: '100%'
   },
   headerCell: {
     backgroundColor: "#f0f0f0",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "bold"
   },
   delegationInfo: {
@@ -75,12 +75,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "right",
-    alignSelf: "flex-end" // makes width shrink to fit content
-
+    alignSelf: "flex-end"
   },
 });
-
-
 
 // ✅ Headers in Arabic - مع معلومات الوصول والمغادرة
 const headers = [
@@ -100,7 +97,7 @@ const headers = [
   "شركة طيران المغادرة"
 ];
 
-const FullReport = ({ data }) => {
+const DelegationMembersReportPDF = ({ data }) => {
   // تجميع البيانات حسب الوفد (وليس الجنسية)
   const groupedByDelegation = data.reduce((acc, member) => {
     const delegationId = member.delegation.id;
@@ -118,7 +115,7 @@ const FullReport = ({ data }) => {
   }, {});
 
   return (
-    <Document key={'full-report'}>
+    <Document key={'delegation-members-report'}>
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Logos + Title Row */}
         <View style={styles.headerRow}>
@@ -199,28 +196,9 @@ const FullReport = ({ data }) => {
             </View>
           </View>
         ))}
-
-        {/* <View style={styles.table}>
-          <View style={styles.row}>
-            {headers.map((h, i) => (
-              <Text key={i} style={[styles.cell, styles.headerCell, { width: '100%' }]}>
-                {h}
-              </Text>
-            ))}
-          </View>
-
-          {data.map((row, i) => (
-            <View style={styles.row} key={i}>
-              <Text style={[styles.cell]}>{row.rank}</Text>
-              <Text style={[styles.cell]}>{row.name}</Text>
-              <Text style={[styles.cell]}>{row.role}</Text>
-              <Text style={[styles.cell]}>{row.nationality}</Text>
-            </View>
-          ))}
-        </View> */}
       </Page>
     </Document>
   )
 }
 
-export default FullReport
+export default DelegationMembersReportPDF

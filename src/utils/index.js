@@ -3,6 +3,46 @@ import { saveAs } from "file-saver";
 import { pdf } from "@react-pdf/renderer";
 
 
+export const exportMembersToExcel = (data, fileName = "EDEX - Members report.xlsx") => {
+    // Create a mapping from English keys → Arabic headers for members
+    const headerMap = {
+        rank: "الرتبة",
+        name: "الاسم",
+        role: "الوظيفة",
+        memberStatus: "حالة العضو",
+    };
+
+    // Convert data keys to Arabic headers
+    const arabicData = data.map((item) => {
+        let newItem = {};
+        for (const key in item) {
+            if (headerMap[key]) {
+                // Convert memberStatus to Arabic text
+                if (key === 'memberStatus') {
+                    const statusMap = {
+                        'departed': 'غادر',
+                        'not_departed': 'لم يغادر'
+                    };
+                    newItem[headerMap[key]] = statusMap[item[key]] || item[key] || 'غير محدد';
+                } else {
+                    newItem[headerMap[key]] = item[key];
+                }
+            }
+        }
+        return newItem;
+    });
+
+    // Generate worksheet
+    const worksheet = XLSX.utils.json_to_sheet(arabicData);
+
+    // Generate workbook and append worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "الجدول");
+
+    // Export to Excel
+    XLSX.writeFile(workbook, fileName);
+};
+
 export const exportToExcel = (data, fileName = "EDEX - Delegations report.xlsx") => {
     // Create a mapping from English keys → Arabic headers
     const headerMap = {
@@ -10,9 +50,9 @@ export const exportToExcel = (data, fileName = "EDEX - Delegations report.xlsx")
         delegationHead: "رئيس الوفد",
         membersCount: "عدد الاعضاء",
         hall: "الصالة",
-        moveType: "نوع الحركة",
+        delegationStatus: "حالة الوفد",
         date: "التاريخ",
-        time: "الساعة",
+        time: "سعت",
         receptor: "المستقبل",
         destination: "وجهة الرحلة",
         shipments: "الشحنات",
@@ -23,7 +63,17 @@ export const exportToExcel = (data, fileName = "EDEX - Delegations report.xlsx")
         let newItem = {};
         for (const key in item) {
             if (headerMap[key]) {
-                newItem[headerMap[key]] = item[key];
+                // Convert delegationStatus to Arabic text
+                if (key === 'delegationStatus') {
+                    const statusMap = {
+                        'all_departed': 'تم مغادرة الوفد',
+                        'partial_departed': 'لم يغادر جزء من الوفد',
+                        'not_departed': 'لم يغادر أحد'
+                    };
+                    newItem[headerMap[key]] = statusMap[item[key]] || item[key];
+                } else {
+                    newItem[headerMap[key]] = item[key];
+                }
             }
         }
         return newItem;
@@ -56,4 +106,29 @@ export const formatArabicDate = (date) => {
     // Return as Arabic numerals
     return `${year}/${month}/${day}`
         .replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]); // Convert to Arabic digits
+};
+
+export const formatTime = (time) => {
+    if (!time) return "";
+    
+    // If it's already in HH:MM format, return as is
+    if (typeof time === 'string' && /^\d{2}:\d{2}$/.test(time)) {
+        return time;
+    }
+    
+    // If it's in HHMM format (4 digits), add colon
+    if (typeof time === 'string' && /^\d{4}$/.test(time)) {
+        const hours = time.substring(0, 2);
+        const minutes = time.substring(2, 4);
+        return `${hours}:${minutes}`;
+    }
+    
+    // If it's a Date object or time string, format it
+    const date = new Date(time);
+    if (isNaN(date.getTime())) return "";
+    
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    
+    return `${hours}:${minutes}`;
 };

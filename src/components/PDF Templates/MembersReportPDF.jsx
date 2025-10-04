@@ -76,7 +76,7 @@ const headers = [
   "الرتبة",
   "الاسم",
   "الوظيفة",
-  "الجنسية",
+  "حالة العضو",
 ];
 
 const MembersReportPDF = ({ data }) => {
@@ -128,7 +128,11 @@ const MembersReportPDF = ({ data }) => {
               <Text style={[styles.cell]}>{row.rank}</Text>
               <Text style={[styles.cell]}>{row.name}</Text>
               <Text style={[styles.cell]}>{row.role}</Text>
-              <Text style={[styles.cell]}>{row.nationality}</Text>
+              <Text style={[styles.cell]}>
+                {row.memberStatus === 'departed' ? 'غادر' :
+                 row.memberStatus === 'not_departed' ? 'لم يغادر' : 
+                 row.memberStatus || 'غير محدد'}
+              </Text>
             </View>
           ))}
         </View>

@@ -37,7 +37,7 @@ const DeletePopup = ({item, children}) => {
                         عند حذفك لتلك البيانات لن تستطيع استرجاعها ابدا , حيث سيتم محوها من قاعدة البيانات الخاصة بنا.
                     </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
+                <DialogFooter className="mt-6">
                     <DialogClose asChild>
                         <Button disabled={loading} variant="outline" className="cursor-pointer !ring-0">الغاء</Button>
                     </DialogClose>

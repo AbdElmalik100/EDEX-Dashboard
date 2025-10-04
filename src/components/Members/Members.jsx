@@ -24,48 +24,45 @@ import { members } from "../../data"
 members
 export const columns = [
     {
-        id: "select",
-        header: ({ table }) => (
-            <div className="text-start ps-2">
-                <Checkbox
-                    className="cursor-pointer"
-                    checked={
-                        table.getIsAllPageRowsSelected() ||
-                        (table.getIsSomePageRowsSelected() && "indeterminate")
-                    }
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label="Select all"
-                />
-            </div>
-        ),
-        cell: ({ row }) => (
-            <div className="text-start ps-2">
-                <Checkbox
-                    className="cursor-pointer"
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                />
-            </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
+        accessorKey: "memberStatus",
+        header: () => <div className="text-start">حالة العضو</div>,
+        cell: ({ row }) => {
+            const status = row.getValue("memberStatus")
+            let statusIcon = ""
+            let iconColor = ""
+            
+            switch(status) {
+                case "departed":
+                    statusIcon = "material-symbols:check-circle" // مشي
+                    iconColor = "text-lime-600"
+                    break
+                case "not_departed":
+                    statusIcon = "material-symbols:cancel" // مش مشي
+                    iconColor = "text-red-600"
+                    break
+                default:
+                    statusIcon = "material-symbols:cancel"
+                    iconColor = "text-red-600"
+            }
+            
+            return (
+                <div className="px-1 py-1 rounded-lg text-lg font-medium text-center bg-gray-200 w-fit">
+                    <Icon icon={statusIcon} fontSize={20} className={iconColor} />
+                </div>
+            )
+        },
     },
     {
         accessorKey: "rank",
-        header: () => <div className="text-start">الجنسية</div>,
+        header: () => <div className="text-start">الرتبة</div>,
     },
     {
         accessorKey: "name",
-        header: () => <div className="text-start">عدد الاعضاء</div>,
+        header: () => <div className="text-start">الاسم</div>,
     },
     {
         accessorKey: "role",
-        header: () => <div className="text-start">المطار</div>,
-    },
-    {
-        accessorKey: "nationality",
-        header: () => <div className="text-start">الجنسية</div>,
+        header: () => <div className="text-start">الدور</div>,
     },
     {
         id: "actions",
@@ -95,15 +92,18 @@ export const columns = [
         },
     },
 ]
-const Members = () => {
+const Members = ({ members: customMembers, showDelegationInfo = true }) => {
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
     const [columnVisibility, setColumnVisibility] = useState({})
     const [rowSelection, setRowSelection] = useState({})
     const [globalFilter, setGlobalFilter] = useState('')
     
+    // استخدام البيانات الممررة أو البيانات الافتراضية
+    const membersData = customMembers || members
+    
     const table = useReactTable({
-        data: members,
+        data: membersData,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -126,7 +126,7 @@ const Members = () => {
     })
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-            <MembersTableToolbar table={table} data={members} />
+            <MembersTableToolbar table={table} data={membersData} showDelegationInfo={showDelegationInfo} />
             <DataTable table={table} columns={columns} />
         </div >
     )

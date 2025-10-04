@@ -8,7 +8,14 @@ import {
   pdf,
   Image
 } from "@react-pdf/renderer";
+import { formatTime } from '../../utils';
 import { formatArabicDate } from "../../utils";
+
+// ✅ Register Arabic font
+Font.register({
+  family: "Cairo",
+  src: "/fonts/Cairo-Regular.ttf",
+});
 
 // ✅ Styles
 const styles = StyleSheet.create({
@@ -99,7 +106,7 @@ const delegationHeaders = [
   "رقم الرحلة",
   "نوع الحركة",
   "التاريخ",
-  "الساعة",
+  "سعت",
   "المستقبل",
   "وجهة الرحلة",
   "الشحنات"
@@ -166,15 +173,19 @@ const CombinedReportPDF = ({
                   <Text style={[styles.cell]}>{row.nationality}</Text>
                   <Text style={[styles.cell]}>{row.delegationHead}</Text>
                   <Text style={[styles.cell]}>{row.membersCount}</Text>
-                  <Text style={[styles.cell]}>{row.hall}</Text>
-                  <Text style={[styles.cell]}>{row.airline}</Text>
-                  <Text style={[styles.cell]}>{row.flightNumber}</Text>
-                  <Text style={[styles.cell]}>{row.moveType}</Text>
-                  <Text style={[styles.cell]}>{row.date}</Text>
-                  <Text style={[styles.cell]}>{row.time}</Text>
-                  <Text style={[styles.cell]}>{row.receptor}</Text>
-                  <Text style={[styles.cell]}>{row.destination}</Text>
-                  <Text style={[styles.cell]}>{row.shipments}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalHall}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalAirline}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalFlightNumber}</Text>
+                  <Text style={[styles.cell]}>
+                    {row.delegationStatus === 'all_departed' ? 'تم مغادرة الوفد' :
+                     row.delegationStatus === 'partial_departed' ? 'لم يغادر جزء من الوفد' :
+                     row.delegationStatus === 'not_departed' ? 'لم يغادر أحد' : row.delegationStatus}
+                  </Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalDate}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalTime ? row.arrivalInfo.arrivalTime.replace(':', '') : ''}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalReceptor}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalDestination}</Text>
+                  <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalShipments}</Text>
                 </View>
               ))}
             </View>
@@ -217,11 +228,11 @@ const CombinedReportPDF = ({
                       <Text style={styles.cell}>{row.rank}</Text>
                       <Text style={styles.cell}>{row.name}</Text>
                       <Text style={styles.cell}>{row.role}</Text>
-                      <Text style={styles.cell}>{row.delegation.destination}</Text>
-                      <Text style={styles.cell}>{row.delegation.date}</Text>
-                      <Text style={styles.cell}>{row.delegation.time}</Text>
-                      <Text style={styles.cell}>{row.delegation.flightNumber}</Text>
-                      <Text style={styles.cell}>{row.delegation.airline}</Text>
+                      <Text style={styles.cell}>{row.delegation.arrivalInfo?.arrivalDestination}</Text>
+                      <Text style={styles.cell}>{row.delegation.arrivalInfo?.arrivalDate}</Text>
+                      <Text style={styles.cell}>{row.delegation.arrivalInfo?.arrivalTime ? row.delegation.arrivalInfo.arrivalTime.replace(':', '') : ''}</Text>
+                      <Text style={styles.cell}>{row.delegation.arrivalInfo?.arrivalFlightNumber}</Text>
+                      <Text style={styles.cell}>{row.delegation.arrivalInfo?.arrivalAirline}</Text>
                     </View>
                   ))}
                 </View>

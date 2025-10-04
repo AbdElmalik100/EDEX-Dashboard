@@ -8,13 +8,14 @@ import {
   pdf,
   Image
 } from "@react-pdf/renderer";
+import { formatTime } from '../../utils';
 import { formatArabicDate } from "../../utils";
 
 // ✅ Register Arabic font
-// Font.register({
-//   family: "Cairo",
-//   src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
-// });
+Font.register({
+  family: "Cairo",
+  src: "/fonts/Cairo-Regular.ttf", // ⬅️ put your Cairo font file inside /public/fonts/
+});
 
 // ✅ Styles
 const styles = StyleSheet.create({
@@ -74,15 +75,15 @@ const headers = [
   "الجنسية",
   "رئيس الوفد",
   "عدد الاعضاء",
-  "الصالة",
-  "شركة الطيران",
-  "رقم الرحلة",
-  "نوع الحركة",
-  "التاريخ",
-  "الساعة",
-  "المستقبل",
-  "وجهة الرحلة",
-  "الشحنات"
+  "مطار الوصول",
+  "شركة طيران الوصول",
+  "رقم رحلة الوصول",
+  "حالة الوفد",
+  "تاريخ الوصول",
+  "سعت الوصول",
+  "مستقبل الوصول",
+  "وجهة الوصول",
+  "شحنات الوصول"
 ];
 
 const DelegationReportPDF = ({ data }) => {
@@ -132,15 +133,19 @@ const DelegationReportPDF = ({ data }) => {
               <Text style={[styles.cell]}>{row.nationality}</Text>
               <Text style={[styles.cell]}>{row.delegationHead}</Text>
               <Text style={[styles.cell]}>{row.membersCount}</Text>
-              <Text style={[styles.cell]}>{row.hall}</Text>
-              <Text style={[styles.cell]}>{row.airline}</Text>
-              <Text style={[styles.cell]}>{row.flightNumber}</Text>
-              <Text style={[styles.cell]}>{row.moveType}</Text>
-              <Text style={[styles.cell]}>{row.date}</Text>
-              <Text style={[styles.cell]}>{row.time}</Text>
-              <Text style={[styles.cell]}>{row.receptor}</Text>
-              <Text style={[styles.cell]}>{row.destination}</Text>
-              <Text style={[styles.cell]}>{row.shipments}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalHall}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalAirline}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalFlightNumber}</Text>
+              <Text style={[styles.cell]}>
+                {row.delegationStatus === 'all_departed' ? 'الوفد غادر' :
+                 row.delegationStatus === 'partial_departed' ? 'جزء منه غادر' :
+                 row.delegationStatus === 'not_departed' ? 'الوفد ما غادرش' : row.delegationStatus}
+              </Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalDate}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalTime ? row.arrivalInfo.arrivalTime.replace(':', '') : ''}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalReceptor}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalDestination}</Text>
+              <Text style={[styles.cell]}>{row.arrivalInfo?.arrivalShipments}</Text>
             </View>
           ))}
         </View>

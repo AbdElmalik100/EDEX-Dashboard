@@ -7,7 +7,6 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { moveTypeOptions } from "../../constants"
 import {
     Select,
     SelectContent,
@@ -20,7 +19,7 @@ const DelegationFilter = ({ table, data }) => {
     const [filters, setFilters] = useState({
         nationality: '',
         destination: '',
-        moveType: '',
+        delegationStatus: '',
         date: '',
         startDate: '',
         endDate: '',
@@ -33,7 +32,7 @@ const DelegationFilter = ({ table, data }) => {
 
     const applyDateRangeFilter = (start, end) => {
         const range = (!start && !end) ? undefined : { start: new Date(start).toLocaleDateString(), end: new Date(end).toLocaleDateString() }
-        table.getColumn("date")?.setFilterValue(range)
+        table.getColumn("arrivalInfo.arrivalDate")?.setFilterValue(range)
         setFilters({ ...filters, startDate: start, endDate: end, date: '' })        
     }
 
@@ -41,7 +40,7 @@ const DelegationFilter = ({ table, data }) => {
         setFilters({
             nationality: '',
             destination: '',
-            moveType: '',
+            delegationStatus: '',
             date: '',
             startDate: '',
             endDate: '',
@@ -85,15 +84,16 @@ const DelegationFilter = ({ table, data }) => {
                             </Select>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="maxWidth">وجهة الرحلة</Label>
-                            <Select dir='rtl' value={filters.destination} onValueChange={val => applyFilter(val, 'destination')}>
+                            <Label htmlFor="maxWidth">وجهة الوصول</Label>
+                            <Select dir='rtl' value={filters.destination} onValueChange={val => applyFilter(val, 'arrivalInfo.arrivalDestination')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="وجهة الرحلة" />
+                                    <SelectValue placeholder="وجهة الوصول" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {
                                         data
-                                            .map(el => el[table.getColumn("destination").id])
+                                            .map(el => el.arrivalInfo?.arrivalDestination)
+                                            .filter(Boolean)
                                             .map((destination, index) => (
                                                 <SelectItem key={index} value={destination}>{destination}</SelectItem>
                                             ))
@@ -102,22 +102,20 @@ const DelegationFilter = ({ table, data }) => {
                             </Select>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="height">نوع الحركة</Label>
-                            <Select dir='rtl' value={filters.moveType} onValueChange={val => applyFilter(val, 'moveType')}>
+                            <Label htmlFor="height">حالة الوفد</Label>
+                            <Select dir='rtl' value={filters.delegationStatus} onValueChange={val => applyFilter(val, 'delegationStatus')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="نوع الحركة" />
+                                    <SelectValue placeholder="حالة الوفد" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {
-                                        moveTypeOptions.map((option, index) => (
-                                            <SelectItem key={index} value={option.value}>{option.label}</SelectItem>
-                                        ))
-                                    }
+                                    <SelectItem value="all_departed">تم مغادرة الوفد</SelectItem>
+                                    <SelectItem value="partial_departed">لم يغادر جزء من الوفد</SelectItem>
+                                    <SelectItem value="not_departed">لم يغادر أحد</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="height">التاريخ</Label>
+                            <Label htmlFor="height">تاريخ الوصول</Label>
                             <input 
                                 className="col-span-2" 
                                 type="date" 
@@ -127,7 +125,7 @@ const DelegationFilter = ({ table, data }) => {
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
                                     setFilters({ ...filters, date: formattedDate, startDate: '', endDate: '' });
-                                    table.getColumn('date')?.setFilterValue(formattedDate === "" ? undefined : new Date(formattedDate).toLocaleDateString())
+                                    table.getColumn('arrivalInfo.arrivalDate')?.setFilterValue(formattedDate === "" ? undefined : new Date(formattedDate).toLocaleDateString())
                                 }} 
                             />
                         </div>

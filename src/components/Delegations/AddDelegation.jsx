@@ -23,7 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { hallOptions, moveTypeOptions } from "../../constants"
+import { hallOptions } from "../../constants"
 
 const AddDelegation = () => {
     const [open, setOpen] = useState(false);
@@ -33,15 +33,15 @@ const AddDelegation = () => {
         nationality: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         delegationHead: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         membersCount: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        hall: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        airline: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        flightNumber: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalHall: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalAirline: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalFlightNumber: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalDate: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalTime: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalReceptor: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalDestination: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        arrivalShipments: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         moveType: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        date: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        time: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        receptor: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        destination: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        shipments: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
     })
 
 
@@ -51,13 +51,15 @@ const AddDelegation = () => {
             nationality: "",
             delegationHead: "",
             membersCount: null,
-            hall: "",
+            arrivalHall: "",
+            arrivalAirline: "",
+            arrivalFlightNumber: "",
+            arrivalDate: new Date().toLocaleDateString('en-CA'),
+            arrivalTime: "1430",
+            arrivalReceptor: "",
+            arrivalDestination: "",
+            arrivalShipments: "",
             moveType: "",
-            date: new Date().toLocaleDateString('en-CA'),
-            time: new Date().toLocaleTimeString('en-GB'),
-            receptor: "",
-            destination: "",
-            shipments: "",
         }
     })
 
@@ -77,42 +79,37 @@ const AddDelegation = () => {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <form>
-                <DialogTrigger asChild>
-                    <Button className="cursor-pointer">
-                        <Icon icon="qlementine-icons:plus-16" />
-                        <span>اضافة وفد جديد</span>
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[725px] max-h-[675px] [&_[data-slot='dialog-close']]:!right-[95%] overflow-auto">
-                    <DialogHeader className="!text-start !py-2">
-                        <DialogTitle>إضافة وفد جديد</DialogTitle>
-                        <DialogDescription>
-                            يمكنك اضافة وفد جديد من هنا, حينما تنتهي من ملئ البيانات قم بضغط اضافة.
-                        </DialogDescription>
-                    </DialogHeader>
+            <DialogTrigger asChild>
+                <Button className="cursor-pointer">
+                    <Icon icon="qlementine-icons:plus-16" />
+                    <span>تسجيل وصول وفد</span>
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[725px] max-h-[675px] [&_[data-slot='dialog-close']]:!right-[95%] overflow-auto">
+                <DialogHeader className="!text-start !py-2">
+                    <DialogTitle>إضافة وفد جديد</DialogTitle>
+                    <DialogDescription>
+                        يمكنك اضافة وفد جديد من هنا, حينما تنتهي من ملئ البيانات قم بضغط اضافة.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <div className="grid gap-4">
                         <div className="w-full items-start flex gap-4">
-                            <div className="grid gap-3 w-full">
-                                <Label htmlFor="nationality">الجنسية</Label>
-                                <input type="text" id="nationality" name="nationality" placeholder="ادخل الجنسية" {...register('nationality')} />
-                                {errors.nationality && <span className="text-sm text-rose-400 block">{errors.nationality.message}</span>}
-                            </div>
                             <div className="grid gap-3 w-full">
                                 <Label htmlFor="delegationHead">رئيس الوفد</Label>
                                 <input type="text" id="delegationHead" name="delegationHead" placeholder="ادخل اسم رئيس الوفد" {...register('delegationHead')} />
                                 {errors.delegationHead && <span className="text-sm text-rose-400 block">{errors.delegationHead.message}</span>}
                             </div>
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="nationality">الجنسية</Label>
+                                <input type="text" id="nationality" name="nationality" placeholder="ادخل الجنسية" {...register('nationality')} />
+                                {errors.nationality && <span className="text-sm text-rose-400 block">{errors.nationality.message}</span>}
+                            </div>
                         </div>
                         <div className="w-full items-start flex gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="membersCount">عدد الاعضاء</Label>
-                                <input type="text" id="membersCount" name="membersCount" placeholder="ادخل عدد الاعضاء" {...register('membersCount')} />
-                                {errors.membersCount && <span className="text-sm text-rose-400 block">{errors.membersCount.message}</span>}
-                            </div>
-                            <div className="grid gap-3 w-full">
-                                <Label htmlFor="hall">المطار</Label>
-                                <Select dir='rtl' value={watch('hall')} onValueChange={val => setValue('hall', val, { shouldValidate: true })}>
+                                <Label htmlFor="arrivalHall">المطار</Label>
+                                <Select dir='rtl' value={watch('arrivalHall')} onValueChange={val => setValue('arrivalHall', val, { shouldValidate: true })}>
                                     <SelectTrigger className="w-full !ring-0 col-span-2">
                                         <SelectValue placeholder="اختر المطار" />
                                     </SelectTrigger>
@@ -124,72 +121,85 @@ const AddDelegation = () => {
                                         }
                                     </SelectContent>
                                 </Select>
-                                {errors.hall && <span className="text-sm text-rose-400 block">{errors.hall.message}</span>}
+                                {errors.arrivalHall && <span className="text-sm text-rose-400 block">{errors.arrivalHall.message}</span>}
+                            </div>
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="membersCount">عدد الاعضاء</Label>
+                                <input type="text" id="membersCount" name="membersCount" placeholder="ادخل عدد الاعضاء" {...register('membersCount')} />
+                                {errors.membersCount && <span className="text-sm text-rose-400 block">{errors.membersCount.message}</span>}
                             </div>
                         </div>
                         <div className="w-full items-start flex gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="airline">شركة الطيران</Label>
-                                <input type="text" id="airline" name="airline" placeholder="ادخل شركة الطيران" {...register('airline')} />
-                                {errors.airline && <span className="text-sm text-rose-400 block">{errors.airline.message}</span>}
+                                <Label htmlFor="arrivalFlightNumber">رقم الرحلة</Label>
+                                <input type="text" id="arrivalFlightNumber" name="arrivalFlightNumber" placeholder="ادخل رقم الرحلة" {...register('arrivalFlightNumber')} />
+                                {errors.arrivalFlightNumber && <span className="text-sm text-rose-400 block">{errors.arrivalFlightNumber.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="flightNumber">رقم الرحلة</Label>
-                                <input type="text" id="flightNumber" name="flightNumber" placeholder="ادخل رقم الرحلة" {...register('flightNumber')} />
-                                {errors.flightNumber && <span className="text-sm text-rose-400 block">{errors.flightNumber.message}</span>}
+                                <Label htmlFor="arrivalAirline">شركة الطيران</Label>
+                                <input type="text" id="arrivalAirline" name="arrivalAirline" placeholder="ادخل شركة الطيران" {...register('arrivalAirline')} />
+                                {errors.arrivalAirline && <span className="text-sm text-rose-400 block">{errors.arrivalAirline.message}</span>}
                             </div>
-                        </div>
-                        <div className="grid gap-3 w-full">
-                            <Label htmlFor="moveType">نوع الحركة</Label>
-                            <Select dir='rtl' value={watch('moveType')} onValueChange={val => setValue('moveType', val, { shouldValidate: true })}>
-                                <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="اختر نوع الحركة" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {
-                                        moveTypeOptions.map((option, index) => (
-                                            <SelectItem key={index} value={option.value}>{option.label}</SelectItem>
-                                        ))
-                                    }
-                                </SelectContent>
-                            </Select>
-                            {errors.moveType && <span className="text-sm text-rose-400 block">{errors.moveType.message}</span>}
                         </div>
                         <div className="w-full items-start flex gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="date">التاريخ</Label>
-                                <input type="date" id="date" name="date" {...register('date')} />
-                                {errors.date && <span className="text-sm text-rose-400 block">{errors.date.message}</span>}
+                                <Label htmlFor="arrivalTime">سعت (HHMM)</Label>
+                                <input 
+                                    type="text" 
+                                    id="arrivalTime" 
+                                    name="arrivalTime" 
+                                    value={watch('arrivalTime')} 
+                                    {...register('arrivalTime')} 
+                                    placeholder="1430"
+                                    maxLength="4"
+                                    pattern="[0-9]{4}"
+                                />
+                                {errors.arrivalTime && <span className="text-sm text-rose-400 block">{errors.arrivalTime.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="time">سعت</Label>
-                                <input type="time" id="time" name="time" value={watch('time')} {...register('time')} />
-                                {errors.time && <span className="text-sm text-rose-400 block">{errors.time.message}</span>}
+                                <Label htmlFor="arrivalDate">التاريخ</Label>
+                                <input type="date" id="arrivalDate" name="arrivalDate" {...register('arrivalDate')} />
+                                {errors.arrivalDate && <span className="text-sm text-rose-400 block">{errors.arrivalDate.message}</span>}
                             </div>
-                        </div>
-                        <div className="grid gap-3 w-full">
-                            <Label htmlFor="receptor">المستقبل</Label>
-                            <input type="text" id="receptor" name="receptor" placeholder="ادخل اسم المستقبل" {...register('receptor')} />
-                            {errors.receptor && <span className="text-sm text-rose-400 block">{errors.receptor.message}</span>}
                         </div>
                         <div className="w-full items-start flex gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="destination">وجهة الرحلة</Label>
-                                <input type="text" id="destination" name="destination" placeholder="ادخل وجهة الرحلة" {...register('destination')} />
-                                {errors.destination && <span className="text-sm text-rose-400 block">{errors.destination.message}</span>}
+                                <Label htmlFor="arrivalReceptor">المستقبل</Label>
+                                <input type="text" id="arrivalReceptor" name="arrivalReceptor" placeholder="ادخل اسم المستقبل" {...register('arrivalReceptor')} />
+                                {errors.arrivalReceptor && <span className="text-sm text-rose-400 block">{errors.arrivalReceptor.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="shipments">الشحنات</Label>
-                                <input type="text" id="shipments" name="shipments" placeholder="ادخل الشحنات" {...register('shipments')} />
-                                {errors.shipments && <span className="text-sm text-rose-400 block">{errors.shipments.message}</span>}
+                                <Label htmlFor="arrivalDestination">وجهة الرحلة</Label>
+                                <input type="text" id="arrivalDestination" name="arrivalDestination" placeholder="ادخل وجهة الرحلة" {...register('arrivalDestination')} />
+                                {errors.arrivalDestination && <span className="text-sm text-rose-400 block">{errors.arrivalDestination.message}</span>}
+                            </div>
+                        </div>
+                        <div className="w-full items-start flex gap-4">
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="arrivalShipments">الشحنات</Label>
+                                <input type="text" id="arrivalShipments" name="arrivalShipments" placeholder="ادخل الشحنات" {...register('arrivalShipments')} />
+                                {errors.arrivalShipments && <span className="text-sm text-rose-400 block">{errors.arrivalShipments.message}</span>}
+                            </div>
+                            <div className="grid gap-3 w-full">
+                                <Label htmlFor="moveType">نوع الحركة</Label>
+                                <Select dir='rtl' value={watch('moveType')} onValueChange={val => setValue('moveType', val, { shouldValidate: true })}>
+                                    <SelectTrigger className="w-full !ring-0 col-span-2">
+                                        <SelectValue placeholder="اختر نوع الحركة" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="arrival">وصول</SelectItem>
+                                        <SelectItem value="departure">مغادرة</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.moveType && <span className="text-sm text-rose-400 block">{errors.moveType.message}</span>}
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="mt-6">
                         <DialogClose asChild>
                             <Button disabled={loading} variant="outline" className="cursor-pointer">الغاء</Button>
                         </DialogClose>
-                        <Button disabled={loading} type="submit" className="cursor-pointer" onClick={onSubmit}>
+                        <Button disabled={loading} type="button" className="cursor-pointer" onClick={onSubmit}>
                             {
                                 loading
                                     ?
@@ -202,8 +212,8 @@ const AddDelegation = () => {
                             }
                         </Button>
                     </DialogFooter>
-                </DialogContent>
-            </form>
+                </form>
+            </DialogContent>
         </Dialog>
     )
 }

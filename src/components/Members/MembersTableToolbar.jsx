@@ -1,9 +1,9 @@
 import { Input } from "@/components/ui/input"
 import MembersFilter from "./MembersFilter"
 import MembersReportExport from "./MembersReportExport"
-import AddMember from "./AddMember"
+import AddMemberToDelegation from "./AddMemberToDelegation"
 
-const MembersTableToolbar = ({ table, data }) => {
+const MembersTableToolbar = ({ table, data, showDelegationInfo = true }) => {
     return (
         <div className="flex items-center gap-4 justify-between py-4">
             <Input
@@ -15,9 +15,9 @@ const MembersTableToolbar = ({ table, data }) => {
                 className="max-w-sm !ring-0"
             />
             <div className="flex items-center gap-2">
-                <MembersFilter table={table} data={data} />
+                {showDelegationInfo && <MembersFilter table={table} data={data} />}
                 <MembersReportExport data={data} />
-                <AddMember />
+                {showDelegationInfo && <AddMemberToDelegation />}
             </div>
         </div>
     )
