@@ -19,6 +19,7 @@ const AllMembersFilter = ({ table, data }) => {
     const [filters, setFilters] = useState({
         rank: '',
         role: '',
+        job: '',
         memberStatus: '',
         delegation: '',
         arrivalDate: '',
@@ -32,9 +33,9 @@ const AllMembersFilter = ({ table, data }) => {
 
     const applyDelegationFilter = (val) => {
         if (val === "") {
-            table.getColumn("delegation.delegationHead")?.setFilterValue(undefined)
+            table.getColumn("delegation_delegationHead")?.setFilterValue(undefined)
         } else {
-            table.getColumn("delegation.delegationHead")?.setFilterValue(val)
+            table.getColumn("delegation_delegationHead")?.setFilterValue(val)
         }
         setFilters({ ...filters, delegation: val })
     }
@@ -44,6 +45,7 @@ const AllMembersFilter = ({ table, data }) => {
         setFilters({
             rank: '',
             role: '',
+            job: '',
             memberStatus: '',
             delegation: '',
             arrivalDate: '',
@@ -99,14 +101,32 @@ const AllMembersFilter = ({ table, data }) => {
                                     <SelectValue placeholder="الدور" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {
-                                        [...new Set(data.map(el => el.role))]
-                                            .map((role, index) => (
-                                                <SelectItem key={index} value={role}>
-                                                    {role}
-                                                </SelectItem>
-                                            ))
-                                    }
+                                    <SelectItem value="رئيس الوفد">رئيس الوفد</SelectItem>
+                                    <SelectItem value="مسافر">مسافر</SelectItem>
+                                    <SelectItem value="مرافق">مرافق</SelectItem>
+                                    <SelectItem value="مترجم">مترجم</SelectItem>
+                                    <SelectItem value="طبيب">طبيب</SelectItem>
+                                    <SelectItem value="أمن">أمن</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* الوظيفة */}
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="job">الوظيفة</Label>
+                            <Select dir='rtl' value={filters.job} onValueChange={val => applyFilter(val, 'job')}>
+                                <SelectTrigger className="w-full !ring-0 col-span-2">
+                                    <SelectValue placeholder="الوظيفة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ضابط">ضابط</SelectItem>
+                                    <SelectItem value="جندي">جندي</SelectItem>
+                                    <SelectItem value="مدني">مدني</SelectItem>
+                                    <SelectItem value="دبلوماسي">دبلوماسي</SelectItem>
+                                    <SelectItem value="طبيب">طبيب</SelectItem>
+                                    <SelectItem value="مهندس">مهندس</SelectItem>
+                                    <SelectItem value="مترجم">مترجم</SelectItem>
+                                    <SelectItem value="أمن">أمن</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

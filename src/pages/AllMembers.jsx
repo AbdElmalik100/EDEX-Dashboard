@@ -44,6 +44,11 @@ const AllMembers = () => {
                         </div>
                     )
                 },
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const status = row.getValue(columnId)
+                    return status && status.toLowerCase().includes(filterValue.toLowerCase())
+                },
             },
             {
                 accessorKey: "rank",
@@ -51,6 +56,11 @@ const AllMembers = () => {
                 cell: ({ row }) => (
                     <span className="text-gray-700">{row.getValue("rank")}</span>
                 ),
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const rank = row.getValue(columnId)
+                    return rank && rank.toLowerCase().includes(filterValue.toLowerCase())
+                },
             },
             {
                 accessorKey: "name",
@@ -65,6 +75,23 @@ const AllMembers = () => {
                 cell: ({ row }) => (
                     <span className="text-gray-700">{row.getValue("role")}</span>
                 ),
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const role = row.getValue(columnId)
+                    return role && role.toLowerCase().includes(filterValue.toLowerCase())
+                },
+            },
+            {
+                accessorKey: "job",
+                header: () => <div className="text-start">الوظيفة</div>,
+                cell: ({ row }) => (
+                    <span className="text-gray-700">{row.getValue("job") || "غير محدد"}</span>
+                ),
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const job = row.getValue(columnId)
+                    return job && job.toLowerCase().includes(filterValue.toLowerCase())
+                },
             },
             {
                 accessorKey: "delegation.delegationHead",
