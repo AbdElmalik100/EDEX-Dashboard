@@ -70,12 +70,26 @@ const AllMembers = () => {
                 accessorKey: "delegation.delegationHead",
                 header: () => <div className="text-start">اسم الوفد</div>,
                 cell: ({ row }) => {
-                    const delegation = row.getValue("delegation_delegationHead")
-                    return delegation ? (
-                        <span className="text-gray-700">{delegation}</span>
-                    ) : (
-                        <span className="text-gray-400">بدون وفد</span>
-                    )
+                    const delegationData = row.original.delegation
+                    if (delegationData && delegationData.nationality && delegationData.delegationHead) {
+                        return (
+                            <span className="text-gray-700">
+                                {delegationData.nationality} - {delegationData.delegationHead}
+                            </span>
+                        )
+                    }
+                    return <span className="text-gray-400">بدون وفد</span>
+                },
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    
+                    const delegationData = row.original.delegation
+                    if (!delegationData || !delegationData.nationality || !delegationData.delegationHead) {
+                        return false
+                    }
+                    
+                    const delegationDisplayName = `${delegationData.nationality} - ${delegationData.delegationHead}`
+                    return delegationDisplayName.toLowerCase().includes(filterValue.toLowerCase())
                 },
             },
             {

@@ -134,10 +134,15 @@ const AllMembersFilter = ({ table, data }) => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {
-                                        [...new Set(data.map(el => el.delegation?.delegationHead).filter(Boolean))]
-                                            .map((delegationHead, index) => (
-                                                <SelectItem key={index} value={delegationHead}>
-                                                    {delegationHead}
+                                        [...new Set(data.map(el => {
+                                            if (el.delegation?.nationality && el.delegation?.delegationHead) {
+                                                return `${el.delegation.nationality} - ${el.delegation.delegationHead}`
+                                            }
+                                            return null
+                                        }).filter(Boolean))]
+                                            .map((delegationDisplayName, index) => (
+                                                <SelectItem key={index} value={delegationDisplayName}>
+                                                    {delegationDisplayName}
                                                 </SelectItem>
                                             ))
                                     }
