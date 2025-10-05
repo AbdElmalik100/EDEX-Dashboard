@@ -213,7 +213,8 @@ const AllMembers = () => {
     const notDepartedMembers = data.filter(member => member.memberStatus === "not_departed").length
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="content">
+            <div className="p-6 space-y-6">
 
             {/* Statistics Cards */}
             <div className="flex gap-2 justify-between">
@@ -259,6 +260,7 @@ const AllMembers = () => {
             <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
                 <AllMembersTableToolbar table={table} data={data} />
                 <DataTable table={table} columns={columns} clickableRow={false} />
+            </div>
             </div>
         </div>
     )
