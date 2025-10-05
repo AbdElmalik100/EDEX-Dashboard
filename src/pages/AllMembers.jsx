@@ -9,7 +9,9 @@ const AllMembers = () => {
     const [data] = useState(members)
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
-    const [columnVisibility, setColumnVisibility] = useState({})
+    const [columnVisibility, setColumnVisibility] = useState({
+        job: false // إخفاء عمود ما يعادلها افتراضياً
+    })
     const [rowSelection, setRowSelection] = useState({})
     const [globalFilter, setGlobalFilter] = useState('')
 
@@ -71,7 +73,7 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "role",
-                header: () => <div className="text-start">الدور</div>,
+                header: () => <div className="text-start">الوظيفة</div>,
                 cell: ({ row }) => (
                     <span className="text-gray-700">{row.getValue("role")}</span>
                 ),
@@ -83,7 +85,7 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "job",
-                header: () => <div className="text-start">الوظيفة</div>,
+                header: () => <div className="text-start">ما يعادلها</div>,
                 cell: ({ row }) => (
                     <span className="text-gray-700">{row.getValue("job") || "غير محدد"}</span>
                 ),
@@ -92,6 +94,11 @@ const AllMembers = () => {
                     const job = row.getValue(columnId)
                     return job && job.toLowerCase().includes(filterValue.toLowerCase())
                 },
+                // إخفاء العمود من العرض
+                enableHiding: false,
+                meta: {
+                    isHidden: true
+                }
             },
             {
                 accessorKey: "delegation.delegationHead",

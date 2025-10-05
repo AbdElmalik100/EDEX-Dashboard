@@ -95,10 +95,10 @@ const AllMembersFilter = ({ table, data }) => {
 
                         {/* الدور */}
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="role">الدور</Label>
+                            <Label htmlFor="role">الوظيفة</Label>
                             <Select dir='rtl' value={filters.role} onValueChange={val => applyFilter(val, 'role')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="الدور" />
+                                    <SelectValue placeholder="الوظيفة" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="رئيس الوفد">رئيس الوفد</SelectItem>
@@ -113,10 +113,10 @@ const AllMembersFilter = ({ table, data }) => {
 
                         {/* الوظيفة */}
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="job">الوظيفة</Label>
+                            <Label htmlFor="job">ما يعادلها</Label>
                             <Select dir='rtl' value={filters.job} onValueChange={val => applyFilter(val, 'job')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="الوظيفة" />
+                                    <SelectValue placeholder="ما يعادلها" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ضابط">ضابط</SelectItem>

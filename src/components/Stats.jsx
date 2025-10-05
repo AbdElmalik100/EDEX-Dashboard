@@ -1,6 +1,9 @@
 import { Icon } from '@iconify/react/dist/iconify.js'
+import { useNavigate } from 'react-router'
 
 const Stats = ({delegationNum, militaryDelegationNum, civilDelegationNum, memebersNum}) => {
+    const navigate = useNavigate()
+    
     return (
         <div className='flex gap-2 justify-between'>
             <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
@@ -39,7 +42,10 @@ const Stats = ({delegationNum, militaryDelegationNum, civilDelegationNum, memebe
                     <Icon icon={'flowbite:user-solid'} fontSize={32} className='text-lime-600' />
                 </div>
             </div>
-            <div className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between'>
+            <div 
+                className='box w-full bg-white p-6 rounded-2xl border border-neutral-300 flex items-center gap-2 justify-between cursor-pointer hover:shadow-lg transition-shadow'
+                onClick={() => navigate('/all-members')}
+            >
                 <div className='flex flex-col gap-1'>
                     <span className='text-neutral-600'>عدد الاعضاء</span>
                     <h2 className='text-purple-700 font-bold text-5xl'>{memebersNum}</h2>
