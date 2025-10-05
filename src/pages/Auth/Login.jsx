@@ -37,8 +37,8 @@ const Login = () => {
         }, 1500)
     })
     return (
-        <div className='login-page bg-white w-1/4 flex flex-col gap-12 p-8 px-12 justify-between'>
-            <div className="mx-auto">
+        <div className='login-page bg-white w-1/4 flex flex-col gap-2 p-8 px-12 justify-center'>
+            <div className="mx-auto mb-2">
                 <img src="/images/logo.png" className="w-46" alt="Logo Image" />
             </div>
 
@@ -79,9 +79,6 @@ const Login = () => {
                     }
                 </Button>
             </form>
-            <div className="mx-auto">
-                <img src="/images/EDEX-logo.jpg" className="w-52" alt="EDEX Logo Image" />
-            </div>
         </div>
     )
 }
