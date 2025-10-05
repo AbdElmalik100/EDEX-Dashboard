@@ -25,15 +25,36 @@ const DelegationFilter = ({ table, data }) => {
         endDate: '',
     })
 
+
     const applyFilter = (val, fieldName) => {
         table.getColumn(fieldName)?.setFilterValue(val === "" ? undefined : val)
         setFilters({ ...filters, [fieldName]: val })
     }
 
     const applyDateRangeFilter = (start, end) => {
-        const range = (!start && !end) ? undefined : { start: new Date(start).toLocaleDateString(), end: new Date(end).toLocaleDateString() }
-        table.getColumn("arrivalInfo.arrivalDate")?.setFilterValue(range)
-        setFilters({ ...filters, startDate: start, endDate: end, date: '' })        
+        setFilters({ ...filters, startDate: start, endDate: end, date: '' })
+        
+        // تطبيق فلتر النطاق الزمني
+        if (!start && !end) {
+            const column = table.getColumn('arrivalInfo_arrivalDate')
+            if (column) {
+                column.setFilterValue(undefined)
+            }
+        } else {
+            // التأكد من أن التواريخ صحيحة قبل تطبيق الفلتر
+            const startDate = start ? new Date(start) : null
+            const endDate = end ? new Date(end) : null
+            
+            if ((!start || !isNaN(startDate.getTime())) && (!end || !isNaN(endDate.getTime()))) {
+                const column = table.getColumn('arrivalInfo_arrivalDate')
+                if (column) {
+                    column.setFilterValue({ 
+                        start: start, 
+                        end: end 
+                    })
+                }
+            }
+        }
     }
 
     const clearFilter = () => {
@@ -117,7 +138,7 @@ const DelegationFilter = ({ table, data }) => {
                         <div className="grid grid-cols-3 items-center gap-4">
                             <Label htmlFor="height">تاريخ الوصول</Label>
                             <input 
-                                className="col-span-2" 
+                                className="col-span-2 !ring-0" 
                                 type="date" 
                                 id="date" 
                                 name="date" 
@@ -125,7 +146,19 @@ const DelegationFilter = ({ table, data }) => {
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
                                     setFilters({ ...filters, date: formattedDate, startDate: '', endDate: '' });
-                                    table.getColumn('arrivalInfo.arrivalDate')?.setFilterValue(formattedDate === "" ? undefined : new Date(formattedDate).toLocaleDateString())
+                                    
+                                    if (formattedDate === "") {
+                                        table.getColumn('arrivalInfo_arrivalDate')?.setFilterValue(undefined)
+                                    } else {
+                                        // التأكد من أن التاريخ صحيح قبل تطبيق الفلتر
+                                        const testDate = new Date(formattedDate)
+                                        if (!isNaN(testDate.getTime())) {
+                                            const column = table.getColumn('arrivalInfo_arrivalDate')
+                                            if (column) {
+                                                column.setFilterValue(formattedDate)
+                                            }
+                                        }
+                                    }
                                 }} 
                             />
                         </div>

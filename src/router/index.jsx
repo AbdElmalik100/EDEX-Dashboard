@@ -9,6 +9,7 @@ import EdexDetails from '../pages/EDEX/EdexDetails'
 import Brightstar from '../pages/Brightstar/Brightstar'
 import EdexMembers from '../pages/EDEX/EdexMembers'
 import CategoryPage from '../pages/Category/CategoryPage'
+import AllMembers from '../pages/AllMembers'
 
 
 const AppRouter = () => {
@@ -24,6 +25,7 @@ const AppRouter = () => {
                 <Route path='/edex/:eventId/:delegationId' element={<EdexMembers />} />
                 <Route path='/equestrianism' element={<Equestrianism />} />
                 <Route path='/brightstar' element={<Brightstar />} />
+                <Route path='/all-members' element={<AllMembers />} />
                 <Route path='/category/:categoryId' element={<CategoryPage />} />
                 <Route path='/category/:categoryId/event/:eventId' element={<EdexDetails />} />
             </Route>

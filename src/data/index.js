@@ -6,7 +6,7 @@ export const delegations = [
     membersCount: "10",
     delegationStatus: "all_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/21/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-21",
       arrivalTime: "1430",
       arrivalHall: "مطار 1",
       arrivalAirline: "مصر للطيران",
@@ -21,7 +21,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep1",
-          date: new Date("9/25/2025").toLocaleDateString(),
+          date: "2025-09-25",
           time: "16:45",
           hall: "مطار 1",
           airline: "مصر للطيران",
@@ -42,7 +42,7 @@ export const delegations = [
     membersCount: "8",
     delegationStatus: "partial_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/22/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-22",
       arrivalTime: "1645",
       arrivalHall: "مطار 2",
       arrivalAirline: "الخطوط السعودية",
@@ -57,7 +57,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep2_1",
-          date: new Date("9/26/2025").toLocaleDateString(),
+          date: "2025-09-26",
           time: "18:30",
           hall: "مطار 2",
           airline: "الخطوط السعودية",
@@ -78,7 +78,7 @@ export const delegations = [
     membersCount: "12",
     delegationStatus: "not_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/23/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-23",
       arrivalTime: "0915",
       arrivalHall: "مطار 3",
       arrivalAirline: "لوفتهانزا",
@@ -100,7 +100,7 @@ export const delegations = [
     membersCount: "15",
     delegationStatus: "all_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/24/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-24",
       arrivalTime: "1120",
       arrivalHall: "مطار 1",
       arrivalAirline: "الخطوط التركية",
@@ -115,7 +115,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep4_1",
-          date: new Date("9/28/2025").toLocaleDateString(),
+          date: "2025-09-28",
           time: "11:20",
           hall: "مطار 1",
           airline: "الخطوط التركية",
@@ -136,7 +136,7 @@ export const delegations = [
     membersCount: "9",
     delegationStatus: "partial_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/25/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-25",
       arrivalTime: "1915",
       arrivalHall: "مطار 2",
       arrivalAirline: "دلتا",
@@ -151,7 +151,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep5_1",
-          date: new Date("9/29/2025").toLocaleDateString(),
+          date: "2025-09-29",
           time: "19:15",
           hall: "مطار 2",
           airline: "دلتا",
@@ -172,7 +172,7 @@ export const delegations = [
     membersCount: "11",
     delegationStatus: "not_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/26/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-26",
       arrivalTime: "1200",
       arrivalHall: "مطار 3",
       arrivalAirline: "اير انديا",
@@ -194,7 +194,7 @@ export const delegations = [
     membersCount: "13",
     delegationStatus: "all_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/27/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-27",
       arrivalTime: "0845",
       arrivalHall: "مطار 1",
       arrivalAirline: "اير تشاينا",
@@ -209,7 +209,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep7_1",
-          date: new Date("10/1/2025").toLocaleDateString(),
+          date: "2025-10-01",
           time: "08:45",
           hall: "مطار 1",
           airline: "اير تشاينا",
@@ -230,7 +230,7 @@ export const delegations = [
     membersCount: "7",
     delegationStatus: "partial_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/28/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-28",
       arrivalTime: "1330",
       arrivalHall: "مطار 2",
       arrivalAirline: "اير فرانس",
@@ -245,7 +245,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep8_1",
-          date: new Date("10/2/2025").toLocaleDateString(),
+          date: "2025-10-02",
           time: "13:30",
           hall: "مطار 2",
           airline: "اير فرانس",
@@ -266,7 +266,7 @@ export const delegations = [
     membersCount: "14",
     delegationStatus: "not_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/29/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-29",
       arrivalTime: "0720",
       arrivalHall: "مطار 3",
       arrivalAirline: "ايجيبت اير",
@@ -288,7 +288,7 @@ export const delegations = [
     membersCount: "10",
     delegationStatus: "all_departed",
     arrivalInfo: {
-      arrivalDate: new Date("9/30/2025").toLocaleDateString(),
+      arrivalDate: "2025-09-30",
       arrivalTime: "1700",
       arrivalHall: "مطار 1",
       arrivalAirline: "اير كايرو",
@@ -303,7 +303,7 @@ export const delegations = [
       departureSessions: [
         {
           id: "dep10_1",
-          date: new Date("10/3/2025").toLocaleDateString(),
+          date: "2025-10-03",
           time: "17:00",
           hall: "مطار 1",
           airline: "اير كايرو",
@@ -328,7 +328,14 @@ export const members = [
     name: "احمد عبدالمنعم",
     role: "رئيس الوفد",
     memberStatus: "departed",
-    delegation: delegations[0], // d1 - مصري
+    nationality: "مصري",
+    arrivalDate: "2025-09-21",
+    departureDate: "2025-09-25",
+    delegation: {
+      id: "d1",
+      nationality: "مصري",
+      delegationHead: "عقيد / احمد فوزي"
+    }
   },
   {
     id: "mem2",
@@ -336,7 +343,14 @@ export const members = [
     name: "سعيد العبدالله",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[0], // d1 - مصري
+    nationality: "مصري",
+    arrivalDate: "2025-09-21",
+    departureDate: null,
+    delegation: {
+      id: "d1",
+      nationality: "مصري",
+      delegationHead: "عقيد / احمد فوزي"
+    }
   },
   {
     id: "mem3",
@@ -344,7 +358,14 @@ export const members = [
     name: "محمود خالد",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[0], // d1 - مصري
+    nationality: "مصري",
+    arrivalDate: "2025-09-21",
+    departureDate: "2025-09-25",
+    delegation: {
+      id: "d1",
+      nationality: "مصري",
+      delegationHead: "عقيد / احمد فوزي"
+    }
   },
   {
     id: "mem4",
@@ -352,7 +373,14 @@ export const members = [
     name: "عمر الفقي",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[1], // d2 - سعودي
+    nationality: "سعودي",
+    arrivalDate: "2025-09-22",
+    departureDate: "2025-09-26",
+    delegation: {
+      id: "d2",
+      nationality: "سعودي",
+      delegationHead: "رائد / فهد العتيبي"
+    }
   },
   {
     id: "mem5",
@@ -360,7 +388,14 @@ export const members = [
     name: "يوسف عادل",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[1], // d2 - سعودي
+    nationality: "سعودي",
+    arrivalDate: "2025-09-22",
+    departureDate: null,
+    delegation: {
+      id: "d2",
+      nationality: "سعودي",
+      delegationHead: "رائد / فهد العتيبي"
+    }
   },
   {
     id: "mem6",
@@ -368,7 +403,14 @@ export const members = [
     name: "احمد ربيع",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[1], // d2 - سعودي
+    nationality: "سعودي",
+    arrivalDate: "2025-09-22",
+    departureDate: "2025-09-26",
+    delegation: {
+      id: "d2",
+      nationality: "سعودي",
+      delegationHead: "رائد / فهد العتيبي"
+    }
   },
   {
     id: "mem7",
@@ -376,7 +418,14 @@ export const members = [
     name: "علي محمود",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[2], // d3 - ألماني
+    nationality: "ألماني",
+    arrivalDate: "2025-09-23",
+    departureDate: "2025-09-27",
+    delegation: {
+      id: "d3",
+      nationality: "ألماني",
+      delegationHead: "رائد / هانز مولر"
+    }
   },
   {
     id: "mem8",
@@ -384,7 +433,14 @@ export const members = [
     name: "خالد منصور",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[2], // d3 - ألماني
+    nationality: "ألماني",
+    arrivalDate: "2025-09-23",
+    departureDate: null,
+    delegation: {
+      id: "d3",
+      nationality: "ألماني",
+      delegationHead: "رائد / هانز مولر"
+    }
   },
   {
     id: "mem9",
@@ -392,7 +448,14 @@ export const members = [
     name: "محمد عاطف",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[3], // d4 - تركي
+    nationality: "تركي",
+    arrivalDate: "2025-09-24",
+    departureDate: "2025-09-28",
+    delegation: {
+      id: "d4",
+      nationality: "تركي",
+      delegationHead: "عقيد / أحمد يلماز"
+    }
   },
   {
     id: "mem10",
@@ -400,7 +463,14 @@ export const members = [
     name: "حسن فؤاد",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[3], // d4 - تركي
+    nationality: "تركي",
+    arrivalDate: "2025-09-24",
+    departureDate: null,
+    delegation: {
+      id: "d4",
+      nationality: "تركي",
+      delegationHead: "عقيد / أحمد يلماز"
+    }
   },
   {
     id: "mem11",
@@ -408,7 +478,14 @@ export const members = [
     name: "جون سميث",
     role: "رئيس الوفد",
     memberStatus: "departed",
-    delegation: delegations[4], // d5 - امريكي
+    nationality: "أمريكي",
+    arrivalDate: "2025-09-25",
+    departureDate: "2025-09-29",
+    delegation: {
+      id: "d5",
+      nationality: "أمريكي",
+      delegationHead: "عقيد / جون سميث"
+    }
   },
   {
     id: "mem12",
@@ -416,7 +493,14 @@ export const members = [
     name: "مايكل جونسون",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[4], // d5 - امريكي
+    nationality: "أمريكي",
+    arrivalDate: "2025-09-25",
+    departureDate: null,
+    delegation: {
+      id: "d5",
+      nationality: "أمريكي",
+      delegationHead: "عقيد / جون سميث"
+    }
   },
   {
     id: "mem13",
@@ -424,7 +508,14 @@ export const members = [
     name: "ديفيد ويلسون",
     role: "مسافر",
     memberStatus: "departed",
-    delegation: delegations[4], // d5 - امريكي
+    nationality: "أمريكي",
+    arrivalDate: "2025-09-25",
+    departureDate: "2025-09-29",
+    delegation: {
+      id: "d5",
+      nationality: "أمريكي",
+      delegationHead: "عقيد / جون سميث"
+    }
   },
   {
     id: "mem14",
@@ -432,7 +523,14 @@ export const members = [
     name: "لي تشينغ",
     role: "رئيس الوفد",
     memberStatus: "departed",
-    delegation: delegations[6], // d7 - صيني
+    nationality: "صيني",
+    arrivalDate: "2025-09-26",
+    departureDate: "2025-09-30",
+    delegation: {
+      id: "d7",
+      nationality: "صيني",
+      delegationHead: "عقيد / لي تشينغ"
+    }
   },
   {
     id: "mem15",
@@ -440,7 +538,14 @@ export const members = [
     name: "وانغ وي",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[6], // d7 - صيني
+    nationality: "صيني",
+    arrivalDate: "2025-09-26",
+    departureDate: null,
+    delegation: {
+      id: "d7",
+      nationality: "صيني",
+      delegationHead: "عقيد / لي تشينغ"
+    }
   },
   {
     id: "mem16",
@@ -448,7 +553,14 @@ export const members = [
     name: "بيير دوبوا",
     role: "رئيس الوفد",
     memberStatus: "departed",
-    delegation: delegations[7], // d8 - فرنسي
+    nationality: "فرنسي",
+    arrivalDate: "2025-09-27",
+    departureDate: "2025-10-01",
+    delegation: {
+      id: "d8",
+      nationality: "فرنسي",
+      delegationHead: "عقيد / بيير دوبوا"
+    }
   },
   {
     id: "mem17",
@@ -456,6 +568,13 @@ export const members = [
     name: "جان مارتن",
     role: "مسافر",
     memberStatus: "not_departed",
-    delegation: delegations[7], // d8 - فرنسي
+    nationality: "فرنسي",
+    arrivalDate: "2025-09-27",
+    departureDate: null,
+    delegation: {
+      id: "d8",
+      nationality: "فرنسي",
+      delegationHead: "عقيد / بيير دوبوا"
+    }
   },
 ]

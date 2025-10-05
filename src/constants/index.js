@@ -26,6 +26,11 @@ export const navLinks = [
         icon: "material-symbols:star-shine-rounded",
         to: "/brightstar",
     },
+    {
+        name: "جميع الأعضاء",
+        icon: "fa:users",
+        to: "/all-members",
+    },
 ]
 
 export const events = [

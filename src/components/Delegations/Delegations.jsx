@@ -99,18 +99,39 @@ export const columns = [
         header: () => <div className="text-start">التاريخ</div>,
         filterFn: (row, columnId, filterValue) => {
             if (!filterValue) return true
-            const rowDate = new Date(row.getValue(columnId)).toLocaleDateString()
-            // Date range
+            
+            const rowDateString = row.getValue(columnId)
+            if (!rowDateString) return false
+            
+            const rowDate = new Date(rowDateString)
+            if (isNaN(rowDate.getTime())) return false
+            
+            // Date range filter
             if (filterValue.start || filterValue.end) {
-                const { start, end } = filterValue                
-                if (start && rowDate < start) return false
-                if (end && rowDate > end) return false
+                const { start, end } = filterValue
+                
+                if (start) {
+                    const startDate = new Date(start)
+                    if (isNaN(startDate.getTime())) return false
+                    if (rowDate < startDate) return false
+                }
+                
+                if (end) {
+                    const endDate = new Date(end)
+                    if (isNaN(endDate.getTime())) return false
+                    if (rowDate > endDate) return false
+                }
+                
                 return true
             }
-            // Single date
-            if (filterValue) {
-                return rowDate === filterValue
+            
+            // Single date filter
+            if (typeof filterValue === 'string') {
+                const filterDate = new Date(filterValue)
+                if (isNaN(filterDate.getTime())) return false
+                return rowDate.toDateString() === filterDate.toDateString()
             }
+            
             return true
         },
     },
@@ -176,6 +197,35 @@ const Delegations = () => {
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
+        filterFns: {
+            ...filterFns,
+            dateRange: (row, columnId, value) => {
+                if (!value || (!value.start && !value.end)) return true
+                
+                const cellValue = row.getValue(columnId)
+                const cellDate = new Date(cellValue)
+                const startDate = value.start ? new Date(value.start) : null
+                const endDate = value.end ? new Date(value.end) : null
+                
+                if (startDate && endDate) {
+                    return cellDate >= startDate && cellDate <= endDate
+                } else if (startDate) {
+                    return cellDate >= startDate
+                } else if (endDate) {
+                    return cellDate <= endDate
+                }
+                return true
+            },
+            exactDate: (row, columnId, value) => {
+                if (!value) return true
+                
+                const cellValue = row.getValue(columnId)
+                const cellDate = new Date(cellValue)
+                const filterDate = new Date(value)
+                
+                return cellDate.toDateString() === filterDate.toDateString()
+            }
+        },
         onGlobalFilterChange: setGlobalFilter,
         globalFilterFn: 'includesString', // or a custom filter fn
 
