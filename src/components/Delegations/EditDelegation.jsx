@@ -314,6 +314,63 @@ const EditDelegation = ({ delegation, children }) => {
         }
     }
 
+    // دوال الحذف
+    const handleDeleteNationality = (nationality) => {
+        if (window.confirm(`هل أنت متأكد من حذف الجنسية "${nationality}"؟`)) {
+            const updatedNationalities = availableNationalities.filter(n => n !== nationality)
+            setAvailableNationalities(updatedNationalities)
+            localStorage.setItem('nationalities', JSON.stringify(updatedNationalities))
+            window.dispatchEvent(new CustomEvent('nationalitiesUpdated'))
+            if (selectedNationality === nationality) {
+                setSelectedNationality("")
+                setValue('nationality', "")
+            }
+            toast.success("تم حذف الجنسية بنجاح")
+        }
+    }
+
+    const handleDeleteAirport = (airport) => {
+        if (window.confirm(`هل أنت متأكد من حذف المطار "${airport}"؟`)) {
+            const updatedAirports = availableAirports.filter(a => a !== airport)
+            setAvailableAirports(updatedAirports)
+            localStorage.setItem('airports', JSON.stringify(updatedAirports))
+            window.dispatchEvent(new CustomEvent('airportsUpdated'))
+            if (selectedAirport === airport) {
+                setSelectedAirport("")
+                setValue('arrivalHall', "")
+            }
+            toast.success("تم حذف المطار بنجاح")
+        }
+    }
+
+    const handleDeleteAirline = (airline) => {
+        if (window.confirm(`هل أنت متأكد من حذف شركة الطيران "${airline}"؟`)) {
+            const updatedAirlines = availableAirlines.filter(a => a !== airline)
+            setAvailableAirlines(updatedAirlines)
+            localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
+            window.dispatchEvent(new CustomEvent('airlinesUpdated'))
+            if (selectedAirline === airline) {
+                setSelectedAirline("")
+                setValue('arrivalAirline', "")
+            }
+            toast.success("تم حذف شركة الطيران بنجاح")
+        }
+    }
+
+    const handleDeleteOrigin = (origin) => {
+        if (window.confirm(`هل أنت متأكد من حذف المدينة "${origin}"؟`)) {
+            const updatedOrigins = availableOrigins.filter(o => o !== origin)
+            setAvailableOrigins(updatedOrigins)
+            localStorage.setItem('origins', JSON.stringify(updatedOrigins))
+            window.dispatchEvent(new CustomEvent('originsUpdated'))
+            if (selectedOrigin === origin) {
+                setSelectedOrigin("")
+                setValue('arrivalOrigin', "")
+            }
+            toast.success("تم حذف المدينة بنجاح")
+        }
+    }
+
     // تصفية الجنسيات حسب البحث
     const filteredNationalities = availableNationalities.filter(nationality =>
         nationality.toLowerCase().includes(searchTerm.toLowerCase())
@@ -647,7 +704,21 @@ const EditDelegation = ({ delegation, children }) => {
                                                     <>
                                                         {filteredNationalities.map((nationality, index) => (
                                                             <SelectItem key={index} value={nationality} className="text-right" dir="rtl">
-                                                                {nationality}
+                                                                <div className="flex items-center justify-between w-full gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onPointerDown={(e) => {
+                                                                            e.preventDefault()
+                                                                            e.stopPropagation()
+                                                                            handleDeleteNationality(nationality)
+                                                                        }}
+                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
+                                                                        title="حذف الجنسية"
+                                                                    >
+                                                                        <Icon icon="material-symbols:close" fontSize={16} />
+                                                                    </button>
+                                                                    <span className="flex-1">{nationality}</span>
+                                                                </div>
                                                             </SelectItem>
                                                         ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
@@ -767,7 +838,21 @@ const EditDelegation = ({ delegation, children }) => {
                                                     <>
                                                         {filteredAirports.map((airport, index) => (
                                                             <SelectItem key={index} value={airport} className="text-right" dir="rtl">
-                                                                {airport}
+                                                                <div className="flex items-center justify-between w-full gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onPointerDown={(e) => {
+                                                                            e.preventDefault()
+                                                                            e.stopPropagation()
+                                                                            handleDeleteAirport(airport)
+                                                                        }}
+                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
+                                                                        title="حذف المطار"
+                                                                    >
+                                                                        <Icon icon="material-symbols:close" fontSize={16} />
+                                                                    </button>
+                                                                    <span className="flex-1">{airport}</span>
+                                                                </div>
                                                             </SelectItem>
                                                         ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
@@ -898,7 +983,21 @@ const EditDelegation = ({ delegation, children }) => {
                                             <div className="max-h-60 overflow-y-auto">
                                                 {filteredAirlines.map((airline, index) => (
                                                     <SelectItem key={index} value={airline} className="text-right">
-                                                        {airline}
+                                                        <div className="flex items-center justify-between w-full gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onPointerDown={(e) => {
+                                                                    e.preventDefault()
+                                                                    e.stopPropagation()
+                                                                    handleDeleteAirline(airline)
+                                                                }}
+                                                                className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
+                                                                title="حذف شركة الطيران"
+                                                            >
+                                                                <Icon icon="material-symbols:close" fontSize={16} />
+                                                            </button>
+                                                            <span className="flex-1">{airline}</span>
+                                                        </div>
                                                     </SelectItem>
                                                 ))}
                                                 <SelectItem value="add_new" className="text-primary-600 font-medium text-right">
@@ -992,7 +1091,21 @@ const EditDelegation = ({ delegation, children }) => {
                                                     <>
                                                         {filteredOrigins.map((origin, index) => (
                                                             <SelectItem key={index} value={origin} className="text-right" dir="rtl">
-                                                                {origin}
+                                                                <div className="flex items-center justify-between w-full gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onPointerDown={(e) => {
+                                                                            e.preventDefault()
+                                                                            e.stopPropagation()
+                                                                            handleDeleteOrigin(origin)
+                                                                        }}
+                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
+                                                                        title="حذف المدينة"
+                                                                    >
+                                                                        <Icon icon="material-symbols:close" fontSize={16} />
+                                                                    </button>
+                                                                    <span className="flex-1">{origin}</span>
+                                                                </div>
                                                             </SelectItem>
                                                         ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
