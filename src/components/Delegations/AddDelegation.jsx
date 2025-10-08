@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { hallOptions } from "../../constants"
 import { nationalities } from "../../utils/nationalities"
+// import DeleteConfirm from "../ui/delete-confirm"
 
 const AddDelegation = ({ subEventId }) => {
     const [open, setOpen] = useState(false);
@@ -98,6 +99,9 @@ const AddDelegation = ({ subEventId }) => {
         ]
     })
     const [originSearchTerm, setOriginSearchTerm] = useState("")
+
+    // حالات حذف العناصر
+    const [deleteItem, setDeleteItem] = useState(null)
 
     // الاستماع لتغييرات localStorage
     useEffect(() => {
@@ -299,59 +303,237 @@ const AddDelegation = ({ subEventId }) => {
 
     // دوال الحذف
     const handleDeleteNationality = (nationality) => {
-        if (window.confirm(`هل أنت متأكد من حذف الجنسية "${nationality}"؟`)) {
-            const updatedNationalities = availableNationalities.filter(n => n !== nationality)
-            setAvailableNationalities(updatedNationalities)
-            localStorage.setItem('nationalities', JSON.stringify(updatedNationalities))
-            window.dispatchEvent(new CustomEvent('nationalitiesUpdated'))
-            if (selectedNationality === nationality) {
-                setSelectedNationality("")
-                setValue('nationality', "")
+        setDeleteItem({
+            type: 'nationality',
+            name: nationality,
+            onDelete: () => {
+                // حذف من قائمة الجنسيات
+                const updatedNationalities = availableNationalities.filter(n => n !== nationality)
+                setAvailableNationalities(updatedNationalities)
+                localStorage.setItem('nationalities', JSON.stringify(updatedNationalities))
+                
+                // حذف من الوفود التي تستخدم هذه الجنسية
+                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
+                const updatedDelegations = existingDelegations.map(delegation => {
+                    if (delegation.nationality === nationality) {
+                        return {
+                            ...delegation,
+                            nationality: "", // مسح الجنسية
+                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                        }
+                    }
+                    return delegation
+                })
+                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
+                
+                // حذف من الأعضاء المرتبطة بالوفود
+                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
+                const updatedMembers = existingMembers.map(member => {
+                    if (member.delegation && member.delegation.nationality === nationality) {
+                        return {
+                            ...member,
+                            delegation: {
+                                ...member.delegation,
+                                nationality: ""
+                            }
+                        }
+                    }
+                    return member
+                })
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                window.dispatchEvent(new CustomEvent('nationalitiesUpdated'))
+                window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                
+                if (selectedNationality === nationality) {
+                    setSelectedNationality("")
+                    setValue('nationality', "")
+                }
+                toast.success(`تم حذف الجنسية "${nationality}" من جميع الوفود والأعضاء`)
+                setDeleteItem(null)
             }
-            toast.success("تم حذف الجنسية بنجاح")
-        }
+        })
     }
 
     const handleDeleteAirport = (airport) => {
-        if (window.confirm(`هل أنت متأكد من حذف المطار "${airport}"؟`)) {
-            const updatedAirports = availableAirports.filter(a => a !== airport)
-            setAvailableAirports(updatedAirports)
-            localStorage.setItem('airports', JSON.stringify(updatedAirports))
-            window.dispatchEvent(new CustomEvent('airportsUpdated'))
-            if (selectedAirport === airport) {
-                setSelectedAirport("")
-                setValue('arrivalHall', "")
+        setDeleteItem({
+            type: 'airport',
+            name: airport,
+            onDelete: () => {
+                // حذف من قائمة المطارات
+                const updatedAirports = availableAirports.filter(a => a !== airport)
+                setAvailableAirports(updatedAirports)
+                localStorage.setItem('airports', JSON.stringify(updatedAirports))
+                
+                // حذف من الوفود التي تستخدم هذا المطار
+                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
+                const updatedDelegations = existingDelegations.map(delegation => {
+                    if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalHall === airport) {
+                        return {
+                            ...delegation,
+                            arrivalInfo: {
+                                ...delegation.arrivalInfo,
+                                arrivalHall: "" // مسح المطار
+                            },
+                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                        }
+                    }
+                    return delegation
+                })
+                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
+                
+                // حذف من الأعضاء المرتبطة بالوفود
+                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
+                const updatedMembers = existingMembers.map(member => {
+                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalHall === airport) {
+                        return {
+                            ...member,
+                            delegation: {
+                                ...member.delegation,
+                                arrivalInfo: {
+                                    ...member.delegation.arrivalInfo,
+                                    arrivalHall: ""
+                                }
+                            }
+                        }
+                    }
+                    return member
+                })
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                window.dispatchEvent(new CustomEvent('airportsUpdated'))
+                window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                
+                if (selectedAirport === airport) {
+                    setSelectedAirport("")
+                    setValue('arrivalHall', "")
+                }
+                toast.success(`تم حذف المطار "${airport}" من جميع الوفود والأعضاء`)
+                setDeleteItem(null)
             }
-            toast.success("تم حذف المطار بنجاح")
-        }
+        })
     }
 
     const handleDeleteAirline = (airline) => {
-        if (window.confirm(`هل أنت متأكد من حذف شركة الطيران "${airline}"؟`)) {
-            const updatedAirlines = availableAirlines.filter(a => a !== airline)
-            setAvailableAirlines(updatedAirlines)
-            localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
-            window.dispatchEvent(new CustomEvent('airlinesUpdated'))
-            if (selectedAirline === airline) {
-                setSelectedAirline("")
-                setValue('arrivalAirline', "")
+        setDeleteItem({
+            type: 'airline',
+            name: airline,
+            onDelete: () => {
+                // حذف من قائمة شركات الطيران
+                const updatedAirlines = availableAirlines.filter(a => a !== airline)
+                setAvailableAirlines(updatedAirlines)
+                localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
+                
+                // حذف من الوفود التي تستخدم هذه شركة الطيران
+                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
+                const updatedDelegations = existingDelegations.map(delegation => {
+                    if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalAirline === airline) {
+                        return {
+                            ...delegation,
+                            arrivalInfo: {
+                                ...delegation.arrivalInfo,
+                                arrivalAirline: "" // مسح شركة الطيران
+                            },
+                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                        }
+                    }
+                    return delegation
+                })
+                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
+                
+                // حذف من الأعضاء المرتبطة بالوفود
+                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
+                const updatedMembers = existingMembers.map(member => {
+                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalAirline === airline) {
+                        return {
+                            ...member,
+                            delegation: {
+                                ...member.delegation,
+                                arrivalInfo: {
+                                    ...member.delegation.arrivalInfo,
+                                    arrivalAirline: ""
+                                }
+                            }
+                        }
+                    }
+                    return member
+                })
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                window.dispatchEvent(new CustomEvent('airlinesUpdated'))
+                window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                
+                if (selectedAirline === airline) {
+                    setSelectedAirline("")
+                    setValue('arrivalAirline', "")
+                }
+                toast.success(`تم حذف شركة الطيران "${airline}" من جميع الوفود والأعضاء`)
+                setDeleteItem(null)
             }
-            toast.success("تم حذف شركة الطيران بنجاح")
-        }
+        })
     }
 
     const handleDeleteOrigin = (origin) => {
-        if (window.confirm(`هل أنت متأكد من حذف المدينة "${origin}"؟`)) {
-            const updatedOrigins = availableOrigins.filter(o => o !== origin)
-            setAvailableOrigins(updatedOrigins)
-            localStorage.setItem('origins', JSON.stringify(updatedOrigins))
-            window.dispatchEvent(new CustomEvent('originsUpdated'))
-            if (selectedOrigin === origin) {
-                setSelectedOrigin("")
-                setValue('arrivalOrigin', "")
+        setDeleteItem({
+            type: 'origin',
+            name: origin,
+            onDelete: () => {
+                // حذف من قائمة المدن
+                const updatedOrigins = availableOrigins.filter(o => o !== origin)
+                setAvailableOrigins(updatedOrigins)
+                localStorage.setItem('origins', JSON.stringify(updatedOrigins))
+                
+                // حذف من الوفود التي تستخدم هذه المدينة
+                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
+                const updatedDelegations = existingDelegations.map(delegation => {
+                    if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalOrigin === origin) {
+                        return {
+                            ...delegation,
+                            arrivalInfo: {
+                                ...delegation.arrivalInfo,
+                                arrivalOrigin: "" // مسح المدينة
+                            },
+                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                        }
+                    }
+                    return delegation
+                })
+                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
+                
+                // حذف من الأعضاء المرتبطة بالوفود
+                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
+                const updatedMembers = existingMembers.map(member => {
+                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalOrigin === origin) {
+                        return {
+                            ...member,
+                            delegation: {
+                                ...member.delegation,
+                                arrivalInfo: {
+                                    ...member.delegation.arrivalInfo,
+                                    arrivalOrigin: ""
+                                }
+                            }
+                        }
+                    }
+                    return member
+                })
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                window.dispatchEvent(new CustomEvent('originsUpdated'))
+                window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                
+                if (selectedOrigin === origin) {
+                    setSelectedOrigin("")
+                    setValue('arrivalOrigin', "")
+                }
+                toast.success(`تم حذف المدينة "${origin}" من جميع الوفود والأعضاء`)
+                setDeleteItem(null)
             }
-            toast.success("تم حذف المدينة بنجاح")
-        }
+        })
     }
 
     // تصفية الجنسيات حسب البحث
@@ -481,6 +663,7 @@ const AddDelegation = ({ subEventId }) => {
     }, [open])
 
     return (
+        <>
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button className="cursor-pointer">
@@ -585,11 +768,6 @@ const AddDelegation = ({ subEventId }) => {
                                         <SelectContent 
                                             className="max-h-[300px] text-right" 
                                             dir="rtl"
-                                            onInteractOutside={(e) => {
-                                                if (e.target.closest('input')) {
-                                                    e.preventDefault()
-                                                }
-                                            }}
                                         >
                                             <div className="p-2 border-b">
                                                 <input 
@@ -719,11 +897,6 @@ const AddDelegation = ({ subEventId }) => {
                                         <SelectContent 
                                             className="max-h-[300px] text-right" 
                                             dir="rtl"
-                                            onInteractOutside={(e) => {
-                                                if (e.target.closest('input')) {
-                                                    e.preventDefault()
-                                                }
-                                            }}
                                         >
                                             <div className="p-2 border-b">
                                                 <input 
@@ -972,11 +1145,6 @@ const AddDelegation = ({ subEventId }) => {
                                         <SelectContent 
                                             className="max-h-[300px] text-right" 
                                             dir="rtl"
-                                            onInteractOutside={(e) => {
-                                                if (e.target.closest('input')) {
-                                                    e.preventDefault()
-                                                }
-                                            }}
                                         >
                                             <div className="p-2 border-b">
                                                 <input
@@ -1207,8 +1375,68 @@ const AddDelegation = ({ subEventId }) => {
                 </form>
             </DialogContent>
         </Dialog>
+        
+        {/* مكون تأكيد الحذف */}
+        {deleteItem && (
+            <div 
+                className="fixed inset-0 flex items-center justify-center" 
+                data-delete-popup 
+                style={{ 
+                    pointerEvents: 'auto',
+                    zIndex: 9999999,
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    transform: 'translateZ(0)',
+                    willChange: 'transform',
+                    isolation: 'isolate'
+                }}
+            >
+                <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteItem(null)} />
+                <div 
+                    className="relative bg-white rounded-lg shadow-xl max-w-sm w-full mx-4 p-6" 
+                    dir="rtl" 
+                    style={{ 
+                        pointerEvents: 'auto',
+                        position: 'relative',
+                        zIndex: 10000000,
+                        transform: 'translateZ(0)',
+                        willChange: 'transform',
+                        isolation: 'isolate'
+                    }}
+                >
+                    <p className="text-gray-700 text-right mb-4">
+                        هل أنت متأكد من الحذف؟
+                    </p>
+                    <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteItem(null)
+                            }}
+                            className="px-4 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium"
+                            style={{ pointerEvents: 'auto' }}
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                deleteItem.onDelete()
+                            }}
+                            className="px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 font-medium"
+                            style={{ pointerEvents: 'auto' }}
+                        >
+                            حذف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     )
 }
-
 
 export default AddDelegation
