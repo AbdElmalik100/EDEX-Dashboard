@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنظيف الأعضاء المعلقة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 تنظيف الأعضاء المعلقة</h1>
+        
+        <div class="info">
+            <strong>ما هذا الـ Script؟</strong><br>
+            هذا الـ script يحذف الأعضاء الذين لا ينتمون لأي وفد موجود في النظام.
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ تحذير:</strong><br>
+            هذا الإجراء لا يمكن التراجع عنه. تأكد من أنك تريد حذف الأعضاء المعلقة.
+        </div>
+        
+        <p>اضغط على الزر أدناه لحذف الأعضاء المعلقة (بدون وفود):</p>
+        
+        <button class="btn" onclick="cleanupOrphanedMembers()">
+            🗑️ حذف الأعضاء المعلقة
+        </button>
+        
+        <button class="btn" onclick="checkData()" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
+            📊 فحص البيانات
+        </button>
+        
+        <div id="result" style="margin-top: 20px; padding: 15px; border-radius: 10px; display: none;"></div>
+    </div>
+
+    <script>
+        function cleanupOrphanedMembers() {
+            console.log('بدء تنظيف الأعضاء المعلقة...')
+            
+            // جلب البيانات من localStorage
+            const savedDelegations = localStorage.getItem('delegations')
+            const savedMembers = localStorage.getItem('members')
+            
+            if (savedDelegations && savedMembers) {
+                try {
+                    const delegations = JSON.parse(savedDelegations)
+                    const members = JSON.parse(savedMembers)
+                    
+                    // الحصول على IDs الوفود الموجودة
+                    const delegationIds = delegations.map(d => d.id)
+                    
+                    // فلترة الأعضاء - الاحتفاظ فقط بالأعضاء المرتبطة بوفود موجودة
+                    const validMembers = members.filter(member => {
+                        // إذا كان العضو مربوط بوفد
+                        if (member.delegation && member.delegation.id) {
+                            return delegationIds.includes(member.delegation.id)
+                        }
+                        // إذا لم يكن مربوط بوفد، احتفظ به (قد يكون عضو مستقل)
+                        return true
+                    })
+                    
+                    // حساب عدد الأعضاء المحذوفة
+                    const deletedCount = members.length - validMembers.length
+                    
+                    // حفظ الأعضاء المفلترة
+                    localStorage.setItem('members', JSON.stringify(validMembers))
+                    
+                    console.log(`تم حذف ${deletedCount} عضو معلق`)
+                    console.log(`عدد الأعضاء قبل التنظيف: ${members.length}`)
+                    console.log(`عدد الأعضاء بعد التنظيف: ${validMembers.length}`)
+                    console.log(`عدد الوفود: ${delegations.length}`)
+                    
+                    // إرسال حدث لتحديث الصفحة
+                    window.dispatchEvent(new CustomEvent('memberDeleted'))
+                    
+                    showResult(`✅ تم تنظيف الأعضاء المعلقة!<br><br>
+                        📊 النتائج:<br>
+                        • تم حذف ${deletedCount} عضو معلق<br>
+                        • عدد الأعضاء قبل التنظيف: ${members.length}<br>
+                        • عدد الأعضاء بعد التنظيف: ${validMembers.length}<br>
+                        • عدد الوفود: ${delegations.length}`, 'success')
+                    
+                } catch (error) {
+                    console.error('خطأ في تنظيف الأعضاء:', error)
+                    showResult('❌ حدث خطأ أثناء تنظيف الأعضاء', 'error')
+                }
+            } else {
+                console.log('لا توجد بيانات في localStorage')
+                showResult('❌ لا توجد بيانات في localStorage', 'error')
+            }
+        }
+        
+        function checkData() {
+            const savedDelegations = localStorage.getItem('delegations')
+            const savedMembers = localStorage.getItem('members')
+            
+            if (savedDelegations && savedMembers) {
+                try {
+                    const delegations = JSON.parse(savedDelegations)
+                    const members = JSON.parse(savedMembers)
+                    
+                    const delegationIds = delegations.map(d => d.id)
+                    const orphanedMembers = members.filter(member => {
+                        if (member.delegation && member.delegation.id) {
+                            return !delegationIds.includes(member.delegation.id)
+                        }
+                        return false
+                    })
+                    
+                    showResult(`📊 فحص البيانات:<br><br>
+                        • عدد الوفود: ${delegations.length}<br>
+                        • عدد الأعضاء: ${members.length}<br>
+                        • عدد الأعضاء المعلقة: ${orphanedMembers.length}<br><br>
+                        ${orphanedMembers.length > 0 ? '⚠️ يوجد أعضاء معلقة تحتاج تنظيف' : '✅ لا توجد أعضاء معلقة'}`, 'info')
+                    
+                } catch (error) {
+                    showResult('❌ خطأ في فحص البيانات', 'error')
+                }
+            } else {
+                showResult('❌ لا توجد بيانات في localStorage', 'error')
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result')
+            resultDiv.innerHTML = message
+            resultDiv.style.display = 'block'
+            
+            if (type === 'success') {
+                resultDiv.style.background = '#d4edda'
+                resultDiv.style.color = '#155724'
+                resultDiv.style.border = '1px solid #c3e6cb'
+            } else if (type === 'error') {
+                resultDiv.style.background = '#f8d7da'
+                resultDiv.style.color = '#721c24'
+                resultDiv.style.border = '1px solid #f5c6cb'
+            } else if (type === 'info') {
+                resultDiv.style.background = '#d1ecf1'
+                resultDiv.style.color = '#0c5460'
+                resultDiv.style.border = '1px solid #bee5eb'
+            }
+        }
+    </script>
+</body>
+</html>

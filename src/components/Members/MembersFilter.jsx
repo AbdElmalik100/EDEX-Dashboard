@@ -19,6 +19,7 @@ const MembersFilter = ({ table, data }) => {
     const [filters, setFilters] = useState({
         rank: '',
         role: '',
+        equivalentRole: '',
     })
 
     const applyFilter = (val, fieldName) => {
@@ -30,6 +31,7 @@ const MembersFilter = ({ table, data }) => {
         setFilters({
             rank: '',
             role: '',
+            equivalentRole: '',
         })
         table.resetColumnFilters()
     }
@@ -84,6 +86,24 @@ const MembersFilter = ({ table, data }) => {
                                             .map(el => el[table.getColumn("rank").id])
                                             .map((rank, index) => (
                                                 <SelectItem key={index} value={rank}>{rank}</SelectItem>
+                                            ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4 w-full">
+                            <Label htmlFor="width">الوظيفة المعادلة</Label>
+                            <Select dir='rtl' value={filters.equivalentRole} onValueChange={val => applyFilter(val, 'equivalentRole')}>
+                                <SelectTrigger className="w-full !ring-0 col-span-2">
+                                    <SelectValue placeholder="الوظيفة المعادلة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {
+                                        [...new Set(data.map(el => el.equivalentRole).filter(Boolean))]
+                                            .map((equivalentRole, index) => (
+                                                <SelectItem key={index} value={equivalentRole}>{equivalentRole}</SelectItem>
                                             ))
                                     }
                                 </SelectContent>

@@ -14,18 +14,18 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import DataTable from "../DataTable"
 import DeletePopup from "../DeletePopup"
+import EditMember from "./EditMember"
 import MembersTableToolbar from "./MembersTableToolbar"
 import { members } from "../../data"
 
-members
 export const columns = [
     {
         accessorKey: "memberStatus",
-        header: () => <div className="text-start">حالة العضو</div>,
+        header: () => <div className="text-center">حالة العضو</div>,
         cell: ({ row }) => {
             const status = row.getValue("memberStatus")
             let statusIcon = ""
@@ -33,11 +33,11 @@ export const columns = [
             
             switch(status) {
                 case "departed":
-                    statusIcon = "material-symbols:check-circle" // مشي
+                    statusIcon = "material-symbols:check-circle"
                     iconColor = "text-lime-600"
                     break
                 case "not_departed":
-                    statusIcon = "material-symbols:cancel" // مش مشي
+                    statusIcon = "material-symbols:cancel"
                     iconColor = "text-red-600"
                     break
                 default:
@@ -46,7 +46,7 @@ export const columns = [
             }
             
             return (
-                <div className="px-1 py-1 rounded-lg text-lg font-medium text-center bg-gray-200 w-fit">
+                <div className="flex justify-center">
                     <Icon icon={statusIcon} fontSize={20} className={iconColor} />
                 </div>
             )
@@ -54,15 +54,28 @@ export const columns = [
     },
     {
         accessorKey: "rank",
-        header: () => <div className="text-start">الرتبة</div>,
+        header: () => <div className="text-center">الرتبة</div>,
     },
     {
         accessorKey: "name",
-        header: () => <div className="text-start">الاسم</div>,
+        header: () => <div className="text-center">الاسم</div>,
     },
     {
         accessorKey: "role",
-        header: () => <div className="text-start">الدور</div>,
+        header: () => <div className="text-center">الدور</div>,
+    },
+    {
+        accessorKey: "equivalentRole",
+        header: () => <div className="text-center">الوظيفة المعادلة</div>,
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue) return true
+            const equivalentRole = row.getValue(columnId)
+            return equivalentRole && equivalentRole.toLowerCase().includes(filterValue.toLowerCase())
+        },
+        enableHiding: false,
+        meta: {
+            isHidden: true
+        }
     },
     {
         id: "actions",
@@ -76,13 +89,15 @@ export const columns = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                            <Icon icon={'material-symbols:edit-outline-rounded'} />
-                            <span>تعديل</span>
-                        </DropdownMenuItem>
+                        <EditMember member={row.original}>
+                            <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                                <Icon icon={'material-symbols:edit-outline-rounded'} />
+                                <span>تعديل</span>
+                            </DropdownMenuItem>
+                        </EditMember>
                         <DeletePopup item={row}>
                             <DropdownMenuItem variant="destructive" onSelect={e => e.preventDefault()}>
-                                <Icon icon={'mynaui:trash'} />
+                                <Icon icon={'material-symbols:delete-outline-rounded'} />
                                 <span>حذف</span>
                             </DropdownMenuItem>
                         </DeletePopup>
@@ -92,18 +107,16 @@ export const columns = [
         },
     },
 ]
-const Members = ({ members: customMembers, showDelegationInfo = true }) => {
+
+const Members = ({ members: data = [], showDelegationInfo = false }) => {
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
     const [columnVisibility, setColumnVisibility] = useState({})
     const [rowSelection, setRowSelection] = useState({})
-    const [globalFilter, setGlobalFilter] = useState('')
-    
-    // استخدام البيانات الممررة أو البيانات الافتراضية
-    const membersData = customMembers || members
-    
+    const [globalFilter, setGlobalFilter] = useState("")
+
     const table = useReactTable({
-        data: membersData,
+        data,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -114,8 +127,6 @@ const Members = ({ members: customMembers, showDelegationInfo = true }) => {
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
         onGlobalFilterChange: setGlobalFilter,
-        globalFilterFn: 'includesString', // or a custom filter fn
-
         state: {
             sorting,
             columnFilters,
@@ -124,11 +135,12 @@ const Members = ({ members: customMembers, showDelegationInfo = true }) => {
             globalFilter,
         },
     })
+    
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-            <MembersTableToolbar table={table} data={membersData} showDelegationInfo={showDelegationInfo} />
-            <DataTable table={table} columns={columns} />
-        </div >
+            <MembersTableToolbar table={table} data={data} showDelegationInfo={showDelegationInfo} />
+            <DataTable table={table} columns={columns} clickableRow={true} />
+        </div>
     )
 }
 

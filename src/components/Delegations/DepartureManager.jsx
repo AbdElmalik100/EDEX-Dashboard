@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Icon } from "@iconify/react/dist/iconify.js"
 import { Button } from "@/components/ui/button"
 import AddDepartureSession from './AddDepartureSession'
@@ -9,6 +9,131 @@ const DepartureManager = ({ delegation, onUpdate }) => {
     const [departureSessions, setDepartureSessions] = useState(
         delegation.departureInfo?.departureSessions || []
     )
+    const [availableMembers, setAvailableMembers] = useState([])
+
+    // تحميل البيانات من localStorage عند تحميل المكون
+    useEffect(() => {
+        const loadDepartureData = () => {
+            try {
+                const savedDelegations = localStorage.getItem('delegations')
+                const savedMembers = localStorage.getItem('members')
+                
+                if (savedDelegations) {
+                    const delegations = JSON.parse(savedDelegations)
+                    const currentDelegation = delegations.find(d => d.id === delegation.id)
+                    
+                    if (currentDelegation && currentDelegation.departureInfo) {
+                        setDepartureSessions(currentDelegation.departureInfo.departureSessions || [])
+
+                    }
+                }
+                
+                // تحميل الأعضاء المتاحين للمغادرة
+                if (savedMembers) {
+                    const members = JSON.parse(savedMembers)
+                    const allDelegationMembers = members.filter(member => 
+                        member.delegation && member.delegation.id === delegation.id
+                    )
+                    const delegationMembers = allDelegationMembers.filter(member => {
+                        // إذا لم يسافر بعد، اظهره
+                        return member.memberStatus !== 'departed'
+                    })
+                    
+                    setAvailableMembers(delegationMembers)
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات المغادرة:', error)
+            }
+        }
+
+        loadDepartureData()
+    }, [delegation.id])
+
+    // تحديث الأعضاء المتاحين عند إضافة جلسة جديدة
+    const updateAvailableMembers = () => {
+
+        try {
+            const savedMembers = localStorage.getItem('members')
+            if (savedMembers) {
+                const members = JSON.parse(savedMembers)
+
+                const delegationMembers = members.filter(member => {
+                    if (!member.delegation || member.delegation.id !== delegation.id) {
+                        return false
+                    }
+                    // إذا لم يسافر بعد، اظهره
+                    return member.memberStatus !== 'departed'
+                })
+                setAvailableMembers(delegationMembers)
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث الأعضاء المتاحين:', error)
+        }
+    }
+
+    // الاستماع لتغييرات الأعضاء
+    useEffect(() => {
+        const handleMemberChange = (event) => {
+            // تحديث جلسات المغادرة من localStorage
+            try {
+                const savedDelegations = localStorage.getItem('delegations')
+                if (savedDelegations) {
+                    const delegations = JSON.parse(savedDelegations)
+                    const currentDelegation = delegations.find(d => d.id === delegation.id)
+                    
+                    if (currentDelegation && currentDelegation.departureInfo) {
+                        const updatedSessions = currentDelegation.departureInfo.departureSessions || []
+
+                        setDepartureSessions(updatedSessions)
+                        
+                        // تحديث الوفد في DelegationMembers
+                        if (onUpdate) {
+                            const totalDeparted = updatedSessions.reduce((total, session) => 
+                                total + session.members.length, 0
+                            )
+                            const newStatus = totalDeparted === parseInt(currentDelegation.membersCount) 
+                                ? 'all_departed' 
+                                : totalDeparted > 0 
+                                    ? 'partial_departed' 
+                                    : 'not_departed'
+                            
+                            onUpdate({
+                                ...currentDelegation,
+                                delegationStatus: newStatus,
+                                departureInfo: {
+                                    ...currentDelegation.departureInfo,
+                                    totalMembers: parseInt(currentDelegation.membersCount),
+                                    departedMembers: totalDeparted,
+                                    departureSessions: updatedSessions
+                                }
+                            })
+
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('خطأ في تحديث جلسات المغادرة:', error)
+            }
+            
+            // تحديث الأعضاء المتاحين
+            updateAvailableMembers()
+        }
+
+        window.addEventListener('memberAdded', handleMemberChange)
+        window.addEventListener('memberDeleted', handleMemberChange)
+        window.addEventListener('memberUpdated', handleMemberChange)
+        window.addEventListener('localStorageUpdated', handleMemberChange)
+
+
+
+        return () => {
+            window.removeEventListener('memberAdded', handleMemberChange)
+            window.removeEventListener('memberDeleted', handleMemberChange)
+            window.removeEventListener('memberUpdated', handleMemberChange)
+            window.removeEventListener('localStorageUpdated', handleMemberChange)
+
+        }
+    }, [delegation.id])
 
     const handleAddSession = (newSession) => {
         const updatedSessions = [...departureSessions, newSession]
@@ -25,6 +150,39 @@ const DepartureManager = ({ delegation, onUpdate }) => {
             : totalDeparted > 0 
                 ? 'partial_departed' 
                 : 'not_departed'
+        
+        // تحديث بيانات الوفد في localStorage
+        try {
+            const savedDelegations = localStorage.getItem('delegations')
+            if (savedDelegations) {
+                const delegations = JSON.parse(savedDelegations)
+                const delegationIndex = delegations.findIndex(d => d.id === delegation.id)
+                
+                if (delegationIndex !== -1) {
+                    delegations[delegationIndex] = {
+                        ...delegations[delegationIndex],
+                        delegationStatus: newStatus,
+                        departureInfo: {
+                            ...delegations[delegationIndex].departureInfo,
+                            totalMembers: parseInt(delegation.membersCount),
+                            departedMembers: totalDeparted,
+                            departureSessions: updatedSessions
+                        }
+                    }
+                    
+                    localStorage.setItem('delegations', JSON.stringify(delegations))
+
+                    
+                    // إرسال event لتحديث الوفد
+                    window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                }
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث بيانات الوفد:', error)
+        }
+        
+        // تحديث الأعضاء المتاحين
+        updateAvailableMembers()
         
         if (onUpdate) {
             onUpdate({
@@ -58,6 +216,39 @@ const DepartureManager = ({ delegation, onUpdate }) => {
                 ? 'partial_departed' 
                 : 'not_departed'
         
+        // تحديث بيانات الوفد في localStorage
+        try {
+            const savedDelegations = localStorage.getItem('delegations')
+            if (savedDelegations) {
+                const delegations = JSON.parse(savedDelegations)
+                const delegationIndex = delegations.findIndex(d => d.id === delegation.id)
+                
+                if (delegationIndex !== -1) {
+                    delegations[delegationIndex] = {
+                        ...delegations[delegationIndex],
+                        delegationStatus: newStatus,
+                        departureInfo: {
+                            ...delegations[delegationIndex].departureInfo,
+                            totalMembers: parseInt(delegation.membersCount),
+                            departedMembers: totalDeparted,
+                            departureSessions: updatedSessions
+                        }
+                    }
+                    
+                    localStorage.setItem('delegations', JSON.stringify(delegations))
+
+                    
+                    // إرسال event لتحديث الوفد
+                    window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                }
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث بيانات الوفد:', error)
+        }
+        
+        // تحديث الأعضاء المتاحين
+        updateAvailableMembers()
+        
         if (onUpdate) {
             onUpdate({
                 ...delegation,
@@ -73,7 +264,55 @@ const DepartureManager = ({ delegation, onUpdate }) => {
     }
 
     const handleDeleteSession = (sessionId) => {
+        // الحصول على الجلسة المحذوفة
+        const deletedSession = departureSessions.find(session => session.id === sessionId)
+        if (deletedSession) {
+            // إرجاع الأعضاء لحالة "لم يغادر"
+            try {
+                const savedMembers = localStorage.getItem('members')
+                if (savedMembers) {
+                    const members = JSON.parse(savedMembers)
+                    
+                    // الحصول على IDs الأعضاء في الجلسة المحذوفة
+                    const memberIds = deletedSession.members.map(member => {
+                        if (typeof member === 'object' && member.id) {
+                            return member.id
+                        }
+                        return member
+                    })
+                    
+
+                    
+                       const updatedMembers = members.map(member => {
+                           if (memberIds.includes(member.id)) {
+
+                               return { 
+                                   ...member, 
+                                   memberStatus: 'not_departed',
+                                   departureDate: null // إرجاع تاريخ المغادرة لـ null
+                               }
+                           }
+                           return member
+                       })
+                    
+                    localStorage.setItem('members', JSON.stringify(updatedMembers))
+                    
+                    // إرسال events لتحديث المكونات
+                    window.dispatchEvent(new CustomEvent('memberUpdated'))
+                    window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+                }
+            } catch (error) {
+                console.error('خطأ في إرجاع حالة الأعضاء:', error)
+            }
+        }
+        
+        // تحديث الأعضاء المتاحين بعد إرجاع حالة الأعضاء
+        setTimeout(() => {
+            updateAvailableMembers()
+        }, 100)
+        
         const updatedSessions = departureSessions.filter(session => session.id !== sessionId)
+
         setDepartureSessions(updatedSessions)
         
         // تحديث عدد المغادرين
@@ -87,6 +326,39 @@ const DepartureManager = ({ delegation, onUpdate }) => {
             : totalDeparted > 0 
                 ? 'partial_departed' 
                 : 'not_departed'
+        
+        // تحديث بيانات الوفد في localStorage
+        try {
+            const savedDelegations = localStorage.getItem('delegations')
+            if (savedDelegations) {
+                const delegations = JSON.parse(savedDelegations)
+                const delegationIndex = delegations.findIndex(d => d.id === delegation.id)
+                
+                if (delegationIndex !== -1) {
+                    delegations[delegationIndex] = {
+                        ...delegations[delegationIndex],
+                        delegationStatus: newStatus,
+                        departureInfo: {
+                            ...delegations[delegationIndex].departureInfo,
+                            totalMembers: parseInt(delegation.membersCount),
+                            departedMembers: totalDeparted,
+                            departureSessions: updatedSessions
+                        }
+                    }
+                    
+                    localStorage.setItem('delegations', JSON.stringify(delegations))
+
+                    
+                    // إرسال event لتحديث الوفد
+                    window.dispatchEvent(new CustomEvent('delegationUpdated'))
+                }
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث بيانات الوفد:', error)
+        }
+        
+        // تحديث الأعضاء المتاحين
+        updateAvailableMembers()
         
         if (onUpdate) {
             onUpdate({
@@ -106,11 +378,6 @@ const DepartureManager = ({ delegation, onUpdate }) => {
         total + session.members.length, 0
     )
     const remainingMembers = parseInt(delegation.membersCount) - totalDeparted
-    
-    // حساب الأعضاء المتاحين للمغادرة (الذين لم يغادروا بعد)
-    const availableMembers = delegation.members?.filter(member => 
-        member.memberStatus !== 'departed'
-    ) || []
 
     return (
         <div className="departure-management bg-white border border-neutral-300 rounded-2xl p-6">

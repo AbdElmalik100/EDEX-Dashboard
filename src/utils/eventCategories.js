@@ -111,6 +111,7 @@ export const addEventCategory = (categoryData) => {
   const newCategory = {
     id: `category_${Date.now()}`,
     name: categoryData.name,
+    englishName: categoryData.englishName,
     icon: categoryData.icon,
     events: []
   };

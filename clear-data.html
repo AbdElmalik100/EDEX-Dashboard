@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسح البيانات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>مسح جميع البيانات</h1>
+        <p>هذا سيمسح جميع البيانات المحفوظة في المتصفح</p>
+        <button onclick="clearAllData()">مسح جميع البيانات</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function clearAllData() {
+            try {
+                // مسح جميع البيانات
+                localStorage.removeItem('delegations');
+                localStorage.removeItem('members');
+                localStorage.removeItem('mainEvents');
+                localStorage.removeItem('militaryPositions');
+                localStorage.removeItem('nationalities');
+                
+                // مسح أي بيانات أخرى قد تكون موجودة
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                    if (key.startsWith('edex_') || key.startsWith('delegation_') || key.startsWith('member_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ تم مسح جميع البيانات بنجاح!</div>';
+                
+                console.log('تم مسح جميع البيانات من localStorage');
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ حدث خطأ أثناء مسح البيانات: ' + error.message + '</div>';
+                console.error('خطأ في مسح البيانات:', error);
+            }
+        }
+    </script>
+</body>
+</html>

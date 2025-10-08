@@ -111,24 +111,22 @@ export const formatArabicDate = (date) => {
 export const formatTime = (time) => {
     if (!time) return "";
     
-    // If it's already in HH:MM format, return as is
-    if (typeof time === 'string' && /^\d{2}:\d{2}$/.test(time)) {
+    // If it's already in HHMM format (4 digits), return as is
+    if (typeof time === 'string' && /^\d{4}$/.test(time)) {
         return time;
     }
     
-    // If it's in HHMM format (4 digits), add colon
-    if (typeof time === 'string' && /^\d{4}$/.test(time)) {
-        const hours = time.substring(0, 2);
-        const minutes = time.substring(2, 4);
-        return `${hours}:${minutes}`;
+    // If it's in HH:MM format, remove colon
+    if (typeof time === 'string' && /^\d{2}:\d{2}$/.test(time)) {
+        return time.replace(':', '');
     }
     
-    // If it's a Date object or time string, format it
+    // If it's a Date object or time string, format it as HHMM
     const date = new Date(time);
     if (isNaN(date.getTime())) return "";
     
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
     
-    return `${hours}:${minutes}`;
+    return `${hours}${minutes}`;
 };

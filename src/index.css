@@ -4,6 +4,58 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* تنسيق التاريخ ليكون يوم/شهر/سنة */
+input[type="date"] {
+  direction: ltr;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  direction: ltr;
+}
+
+/* تنسيق عرض التاريخ بصيغة يوم/شهر/سنة */
+input[type="date"] {
+  text-align: left;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  direction: ltr;
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  direction: ltr;
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+  direction: ltr;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  direction: ltr;
+}
+
+/* إخفاء جميع الـ scroll bars في النظام */
+* {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* إخفاء الـ scroll bar للعناصر المحددة */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
 
 @theme {
   --font-Rubik: "Rubik", sans-serif;
@@ -163,4 +215,72 @@ input {
   margin-top: 2rem;
   overflow: auto;
   height: calc(100% - 104px);
+}
+
+/* إخفاء الـ scroll bars لجميع العناصر التي تحتوي على overflow */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-scroll,
+.overflow-y-scroll,
+.overflow-x-scroll {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.overflow-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-scroll::-webkit-scrollbar,
+.overflow-y-scroll::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* إخفاء الـ scroll bars للعناصر المحددة في النظام */
+[data-radix-scroll-area-viewport],
+[data-radix-select-content],
+[data-radix-dropdown-content],
+[data-radix-popover-content] {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+[data-radix-scroll-area-viewport]::-webkit-scrollbar,
+[data-radix-select-content]::-webkit-scrollbar,
+[data-radix-dropdown-content]::-webkit-scrollbar,
+[data-radix-popover-content]::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* إخفاء الـ scroll bars للجداول والقوائم */
+table,
+tbody,
+thead,
+tr,
+td,
+th,
+ul,
+ol,
+li,
+div[role="listbox"],
+div[role="menu"],
+div[role="combobox"] {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+table::-webkit-scrollbar,
+tbody::-webkit-scrollbar,
+thead::-webkit-scrollbar,
+tr::-webkit-scrollbar,
+td::-webkit-scrollbar,
+th::-webkit-scrollbar,
+ul::-webkit-scrollbar,
+ol::-webkit-scrollbar,
+li::-webkit-scrollbar,
+div[role="listbox"]::-webkit-scrollbar,
+div[role="menu"]::-webkit-scrollbar,
+div[role="combobox"]::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }

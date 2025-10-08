@@ -3,15 +3,124 @@ import { useParams } from "react-router"
 import { members, delegations } from "../../data"
 import { formatTime } from "../../utils"
 import DepartureManager from "../../components/Delegations/DepartureManager"
+import { useState, useEffect } from "react"
 
-const EdexMembers = () => {
-    const { delegationId } = useParams()
+const DelegationMembers = () => {
+    const { eventName, subEventId, delegationId } = useParams()
+    const [delegationMembers, setDelegationMembers] = useState([])
+    const [selectedDelegation, setSelectedDelegation] = useState(null)
     
-    // العثور على الوفد المحدد
-    const selectedDelegation = delegations.find(d => d.id === delegationId)
-    
-    // تصفية الأعضاء الذين ينتمون لهذا الوفد
-    const delegationMembers = members.filter(member => member.delegation.id === delegationId)
+    // تحميل البيانات الحقيقية
+    useEffect(() => {
+        const loadData = () => {
+
+            // تحميل الأعضاء من localStorage
+            const savedMembers = localStorage.getItem('members')
+            const savedDelegations = localStorage.getItem('delegations')
+            if (savedMembers) {
+                try {
+                    const parsedMembers = JSON.parse(savedMembers)
+                    const parsedDelegations = savedDelegations ? JSON.parse(savedDelegations) : []
+                    const filteredMembers = parsedMembers.filter(member => 
+                        member.delegation && member.delegation.id === delegationId
+                    )
+                    
+                    // تحديث حالة الأعضاء بناءً على جلسات المغادرة
+                    const updatedMembers = filteredMembers.map(member => {
+                        const delegation = parsedDelegations.find(d => d.id === delegationId)
+                        if (delegation && delegation.departureInfo && delegation.departureInfo.departureSessions) {
+                            // البحث عن العضو في جلسات المغادرة
+                            let departureDate = null
+                            let isInDepartureSession = false
+                            
+                            for (const session of delegation.departureInfo.departureSessions) {
+                                const memberInSession = session.members.find(sessionMember => {
+                                    if (typeof sessionMember === 'object' && sessionMember.id) {
+                                        return sessionMember.id === member.id
+                                    }
+                                    return sessionMember === member.id
+                                })
+                                
+                                if (memberInSession) {
+                                    isInDepartureSession = true
+                                    departureDate = session.date
+                                    break
+                                }
+                            }
+                            
+                            return {
+                                ...member,
+                                memberStatus: isInDepartureSession ? "departed" : "not_departed",
+                                departureDate: departureDate
+                            }
+                        }
+                        return { ...member, memberStatus: "not_departed", departureDate: null }
+                    })
+                    
+                    setDelegationMembers(updatedMembers)
+
+
+                } catch (error) {
+                    console.error('خطأ في تحليل بيانات الأعضاء:', error)
+                    setDelegationMembers([])
+                }
+            } else {
+
+                setDelegationMembers([])
+            }
+            
+            // تحميل الوفود من localStorage أو استخدام البيانات الافتراضية
+            if (savedDelegations) {
+                try {
+                    const parsedDelegations = JSON.parse(savedDelegations)
+                    const delegation = parsedDelegations.find(d => d.id === delegationId)
+
+
+
+                    if (delegation && delegation.departureInfo) {
+                        // يمكن إضافة منطق إضافي هنا إذا لزم الأمر
+                    } else {
+                        // يمكن إضافة منطق إضافي هنا إذا لزم الأمر
+                    }
+
+                    setSelectedDelegation(delegation || null)
+                } catch (error) {
+                    console.error('خطأ في تحليل بيانات الوفود:', error)
+                    setSelectedDelegation(null)
+                }
+            } else {
+                // استخدام البيانات الافتراضية للوفد
+                const delegation = delegations.find(d => d.id === delegationId)
+                setSelectedDelegation(delegation || null)
+            }
+        }
+        
+        loadData()
+        
+        // الاستماع لتغييرات localStorage
+        const handleStorageChange = (event) => {
+
+
+
+            loadData()
+        }
+        
+        window.addEventListener('storage', handleStorageChange)
+        window.addEventListener('memberAdded', handleStorageChange)
+        window.addEventListener('memberDeleted', handleStorageChange)
+        window.addEventListener('memberUpdated', handleStorageChange)
+        window.addEventListener('localStorageUpdated', handleStorageChange)
+        window.addEventListener('delegationUpdated', handleStorageChange)
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('memberAdded', handleStorageChange)
+            window.removeEventListener('memberDeleted', handleStorageChange)
+            window.removeEventListener('memberUpdated', handleStorageChange)
+            window.removeEventListener('localStorageUpdated', handleStorageChange)
+            window.removeEventListener('delegationUpdated', handleStorageChange)
+        }
+    }, [delegationId])
     
     return (
         <div className="content">
@@ -103,8 +212,14 @@ const EdexMembers = () => {
                 <DepartureManager 
                     delegation={selectedDelegation}
                     onUpdate={(updatedDelegation) => {
-                        // هنا يمكن إضافة منطق تحديث البيانات
-                        console.log('تم تحديث الوفد:', updatedDelegation)
+                        // تحديث الوفد المحلي
+                        setSelectedDelegation(updatedDelegation)
+
+
+                        // إعادة تحميل بيانات الأعضاء
+                        setTimeout(() => {
+                            // يمكن إضافة منطق إعادة تحميل البيانات هنا
+                        }, 100)
                     }}
                 />
             )}
@@ -114,4 +229,4 @@ const EdexMembers = () => {
     )
 }
 
-export default EdexMembers
+export default DelegationMembers

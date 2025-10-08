@@ -33,7 +33,9 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
 
     const validationSchema = yup.object({
         date: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        time: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        time: yup.string()
+            .required("هذا الحقل لا يمكن ان يكون فارغا")
+            .matches(/^[0-9]{4}$/, "يجب أن يكون الوقت بصيغة HHMM (مثل: 1430)"),
         hall: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         airline: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         flightNumber: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
@@ -71,7 +73,14 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
             setValue('notes', session.notes || "")
             
             // تعبئة الأعضاء المختارين
-            setSelectedMembers(session.members || [])
+            // إذا كان session.members يحتوي على member objects، استخرج الـ IDs
+            const memberIds = (session.members || []).map(member => {
+                if (typeof member === 'object' && member.id) {
+                    return member.id
+                }
+                return member
+            })
+            setSelectedMembers(memberIds)
         }
     }, [open, session, setValue])
 
@@ -80,6 +89,21 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
             toast.error("يجب اختيار عضو واحد على الأقل")
             return
         }
+
+        // تحويل IDs إلى member objects كاملة
+        const memberObjects = selectedMembers.map(memberId => {
+            // البحث عن العضو في localStorage
+            try {
+                const savedMembers = localStorage.getItem('members')
+                if (savedMembers) {
+                    const members = JSON.parse(savedMembers)
+                    return members.find(member => member.id === memberId)
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الأعضاء:', error)
+            }
+            return null
+        }).filter(member => member !== null)
 
         const updatedSession = {
             ...session,
@@ -91,11 +115,74 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
             destination: data.destination,
             receptor: data.receptor,
             shipments: data.shipments,
-            members: selectedMembers,
+            members: memberObjects, // حفظ member objects كاملة
             notes: data.notes || ""
         }
 
         setLoading(true)
+        
+        // تحديث حالة الأعضاء في localStorage
+        try {
+            const savedMembers = localStorage.getItem('members')
+            if (savedMembers) {
+                const members = JSON.parse(savedMembers)
+                
+                // الحصول على الأعضاء اللي كانوا في الجلسة القديمة
+                const oldMemberIds = (session.members || []).map(member => {
+                    if (typeof member === 'object' && member.id) {
+                        return member.id
+                    }
+                    return member
+                })
+                
+                // الحصول على الأعضاء الجدد في الجلسة
+                const newMemberIds = selectedMembers
+                
+                // الأعضاء اللي تم إزالتهم من الجلسة
+                const removedMemberIds = oldMemberIds.filter(id => !newMemberIds.includes(id))
+                
+                // الأعضاء الجدد في الجلسة
+                const addedMemberIds = newMemberIds.filter(id => !oldMemberIds.includes(id))
+                
+
+
+
+
+                
+                const updatedMembers = members.map(member => {
+                    // إرجاع الأعضاء المحذوفين لحالة "لم يغادر"
+                    if (removedMemberIds.includes(member.id)) {
+
+                        return { 
+                            ...member, 
+                            memberStatus: 'not_departed',
+                            departureDate: null // إرجاع تاريخ المغادرة لـ null
+                        }
+                    }
+                    // تحديث الأعضاء الجدد لحالة "مغادر"
+                    if (addedMemberIds.includes(member.id)) {
+
+                        return { 
+                            ...member, 
+                            memberStatus: 'departed',
+                            departureDate: data.date // تحديث تاريخ المغادرة
+                        }
+                    }
+                    return member
+                })
+                
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                // إرسال events لتحديث المكونات
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+                
+
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث حالة الأعضاء:', error)
+        }
+        
         setTimeout(() => {
             onUpdate(updatedSession)
             toast.success("تم تحديث جلسة المغادرة بنجاح")
@@ -125,12 +212,30 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-3 w-full">
                                 <Label htmlFor="date">التاريخ</Label>
-                                <input type="date" id="date" name="date" {...register('date')} />
+                                <input type="date" id="date" name="date" style={{ direction: 'ltr' }} {...register('date')} />
                                 {errors.date && <span className="text-sm text-rose-400 block">{errors.date.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="time">سعت</Label>
-                                <input type="time" id="time" name="time" {...register('time')} />
+                                <Label htmlFor="time">سعت (HHMM)</Label>
+                                <input 
+                                    type="text" 
+                                    id="time" 
+                                    name="time" 
+                                    {...register('time')} 
+                                    placeholder="1430"
+                                    maxLength="4"
+                                    pattern="[0-9]{4}"
+                                    onInput={(e) => {
+                                        // إزالة أي حروف غير الأرقام
+                                        let value = e.target.value.replace(/[^0-9]/g, '');
+                                        // تحديد الحد الأقصى لـ 4 أرقام
+                                        if (value.length > 4) {
+                                            value = value.substring(0, 4);
+                                        }
+                                        e.target.value = value;
+                                    }}
+                                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200 bg-neutral-50 focus:bg-white"
+                                />
                                 {errors.time && <span className="text-sm text-rose-400 block">{errors.time.message}</span>}
                             </div>
                         </div>
@@ -172,8 +277,8 @@ const EditDepartureSession = ({ session, delegation, onUpdate }) => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="receptor">المستقبل</Label>
-                                <input type="text" id="receptor" name="receptor" placeholder="ادخل اسم المستقبل" {...register('receptor')} />
+                                <Label htmlFor="receptor">المودع</Label>
+                                <input type="text" id="receptor" name="receptor" placeholder="ادخل اسم المودع" {...register('receptor')} />
                                 {errors.receptor && <span className="text-sm text-rose-400 block">{errors.receptor.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">

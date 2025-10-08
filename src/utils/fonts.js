@@ -9,6 +9,6 @@ export const registerPDFFonts = () => {
         src: "/fonts/Cairo-Regular.ttf",
         });
         fontsRegistered = true;
-        console.log("PDF fonts registered");
+
     }
 };

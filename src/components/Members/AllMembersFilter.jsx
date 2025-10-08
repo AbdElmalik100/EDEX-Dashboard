@@ -179,6 +179,7 @@ const AllMembersFilter = ({ table, data }) => {
                                 id="arrivalDate" 
                                 name="arrivalDate" 
                                 value={filters.arrivalDate} 
+                                style={{ direction: 'ltr' }}
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
                                     setFilters({ ...filters, arrivalDate: formattedDate });
@@ -196,6 +197,7 @@ const AllMembersFilter = ({ table, data }) => {
                                 id="departureDate" 
                                 name="departureDate" 
                                 value={filters.departureDate} 
+                                style={{ direction: 'ltr' }}
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
                                     setFilters({ ...filters, departureDate: formattedDate });

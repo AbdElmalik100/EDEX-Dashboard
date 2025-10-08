@@ -26,7 +26,7 @@ import {
 import { hallOptions } from "../../constants"
 import { nationalities } from "../../utils/nationalities"
 
-const AddDelegation = ({ subEventId }) => {
+const EditDelegation = ({ delegation, children }) => {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false)
     const [selectedNationality, setSelectedNationality] = useState("")
@@ -129,14 +129,11 @@ const AddDelegation = ({ subEventId }) => {
         delegationType: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
     })
 
-
-    const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
-            nationality: "",
             delegationHead: "",
-            membersCount: null,
-            arrivalHall: "",
+            membersCount: "",
             arrivalAirline: "",
             arrivalFlightNumber: "",
             arrivalOrigin: "",
@@ -149,6 +146,23 @@ const AddDelegation = ({ subEventId }) => {
         }
     })
 
+    // تحميل البيانات من localStorage عند فتح النموذج
+    useEffect(() => {
+        if (open) {
+            // تحميل الجنسيات من localStorage
+            const savedNationalities = localStorage.getItem('nationalities')
+            if (savedNationalities) {
+                setAvailableNationalities(JSON.parse(savedNationalities))
+            }
+            
+            // تحميل المطارات من localStorage
+            const savedAirports = localStorage.getItem('airports')
+            if (savedAirports) {
+                setAvailableAirports(JSON.parse(savedAirports))
+            }
+        }
+    }, [open])
+
 
     const handleNationalityChange = (value) => {
         setSelectedNationality(value)
@@ -156,6 +170,7 @@ const AddDelegation = ({ subEventId }) => {
             setShowAddNationality(true)
         } else {
             setValue('nationality', value)
+            setSearchTerm("")
         }
     }
 
@@ -165,6 +180,7 @@ const AddDelegation = ({ subEventId }) => {
             setShowAddAirport(true)
         } else {
             setValue('arrivalHall', value)
+            setAirportSearchTerm("")
         }
     }
 
@@ -185,6 +201,7 @@ const AddDelegation = ({ subEventId }) => {
             // إرسال custom event لتحديث الفورمات الأخرى
             window.dispatchEvent(new CustomEvent('originsUpdated'))
             setSelectedOrigin(newOrigin.trim())
+            setValue('arrivalOrigin', newOrigin.trim())
             setNewOrigin("")
             setShowAddOrigin(false)
             setOriginSearchTerm("")
@@ -277,14 +294,14 @@ const AddDelegation = ({ subEventId }) => {
             // الحصول على البيانات الحالية من localStorage
             const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
             
-            // إنشاء الوفد الجديد
-            const newDelegation = {
-                id: Date.now().toString(),
-                ...data,
+            // تحديث الوفد
+            const updatedDelegation = {
+                ...delegation,
+                delegationHead: data.delegationHead,
+                membersCount: parseInt(data.membersCount),
+                delegationType: data.delegationType,
                 type: data.delegationType, // إضافة type للتوافق مع حساب الإحصائيات
-                subEventId: parseInt(subEventId), // تحويل إلى number
                 nationality: selectedNationality,
-                delegationStatus: 'not_departed', // إضافة حالة افتراضية
                 arrivalInfo: {
                     arrivalHall: selectedAirport,
                     arrivalAirline: data.arrivalAirline,
@@ -296,70 +313,145 @@ const AddDelegation = ({ subEventId }) => {
                     arrivalDestination: data.arrivalDestination,
                     arrivalShipments: data.arrivalShipments
                 },
-                createdAt: new Date().toISOString(),
-                status: 'active'
+                updatedAt: new Date().toISOString()
             }
             
-            // إضافة الوفد الجديد
-            const updatedDelegations = [...existingDelegations, newDelegation]
+            // تحديث الوفود
+            const updatedDelegations = existingDelegations.map(d => 
+                d.id === delegation.id ? updatedDelegation : d
+            )
             
             // حفظ البيانات في localStorage
             localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
             
-            // إرسال حدث لتحديث المكونات الأخرى
-            console.log('AddDelegation: Dispatching delegationAdded event')
-            window.dispatchEvent(new CustomEvent('delegationAdded', { detail: newDelegation }))
+            // تحديث الأعضاء المرتبطة بالوفد
+            try {
+                const savedMembers = localStorage.getItem('members')
+                if (savedMembers) {
+                    const members = JSON.parse(savedMembers)
+                    console.log('EditDelegation: Before update - members with old delegation data:', 
+                        members.filter(m => m.delegation && m.delegation.id === delegation.id).map(m => ({
+                            name: m.name,
+                            delegation: m.delegation
+                        }))
+                    )
+                    
+                    const updatedMembers = members.map(member => {
+                        if (member.delegation && member.delegation.id === delegation.id) {
+                            const updatedMember = {
+                                ...member,
+                                delegation: {
+                                    ...member.delegation,
+                                    nationality: selectedNationality,
+                                    delegationHead: data.delegationHead,
+                                    delegationType: data.delegationType,
+                                    membersCount: parseInt(data.membersCount),
+                                    arrivalInfo: {
+                                        arrivalHall: selectedAirport,
+                                        arrivalAirline: data.arrivalAirline,
+                                        arrivalFlightNumber: data.arrivalFlightNumber,
+                                        arrivalOrigin: data.arrivalOrigin,
+                                        arrivalDate: data.arrivalDate,
+                                        arrivalTime: data.arrivalTime,
+                                        arrivalReceptor: data.arrivalReceptor,
+                                        arrivalDestination: data.arrivalDestination,
+                                        arrivalShipments: data.arrivalShipments
+                                    }
+                                }
+                            }
+                            console.log('EditDelegation: Updated member delegation data for:', member.name, 'from', member.delegation, 'to', updatedMember.delegation)
+                            return updatedMember
+                        }
+                        return member
+                    })
+                    
+                    console.log('EditDelegation: After update - members with new delegation data:', 
+                        updatedMembers.filter(m => m.delegation && m.delegation.id === delegation.id).map(m => ({
+                            name: m.name,
+                            delegation: m.delegation
+                        }))
+                    )
+                    
+                    localStorage.setItem('members', JSON.stringify(updatedMembers))
+                    console.log('EditDelegation: Updated members with new delegation data')
+                }
+            } catch (error) {
+                console.error('خطأ في تحديث بيانات الأعضاء:', error)
+            }
             
-        setTimeout(() => {
-            toast.success("تم اضافة وفد جديد")
-            reset()
-            setSelectedNationality("")
-            setSelectedAirport("")
-            setSearchTerm("")
-            setAirportSearchTerm("")
-            setLoading(false)
-            setOpen(false)
-        }, 1000)
+            // إرسال حدث لتحديث المكونات الأخرى
+            window.dispatchEvent(new CustomEvent('delegationUpdated', { detail: updatedDelegation }))
+            window.dispatchEvent(new CustomEvent('memberUpdated'))
+            window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+            
+            setTimeout(() => {
+                toast.success("تم تحديث الوفد بنجاح")
+                reset()
+                setSelectedNationality("")
+                setSelectedAirport("")
+                setSearchTerm("")
+                setAirportSearchTerm("")
+                setLoading(false)
+                setOpen(false)
+            }, 1000)
         } catch (error) {
-            console.error('Error adding delegation:', error)
-            toast.error("حدث خطأ أثناء إضافة الوفد")
+            console.error('Error updating delegation:', error)
+            toast.error("حدث خطأ أثناء تحديث الوفد")
             setLoading(false)
         }
     })
 
     useEffect(() => {
-        reset()
-        setSelectedNationality("")
-        setSelectedAirport("")
-        setSearchTerm("")
-        setAirportSearchTerm("")
-        setShowAddNationality(false)
-        setShowAddAirport(false)
-        setNewNationality("")
-        setNewAirport("")
-    }, [open])
+        if (open && delegation) {
+            reset({
+                delegationHead: delegation.delegationHead || "",
+                membersCount: delegation.membersCount?.toString() || "",
+                arrivalAirline: delegation.arrivalInfo?.arrivalAirline || "",
+                arrivalFlightNumber: delegation.arrivalInfo?.arrivalFlightNumber || "",
+                arrivalOrigin: delegation.arrivalInfo?.arrivalOrigin || "",
+                arrivalDate: delegation.arrivalInfo?.arrivalDate || "",
+                arrivalTime: delegation.arrivalInfo?.arrivalTime || "",
+                arrivalReceptor: delegation.arrivalInfo?.arrivalReceptor || "",
+                arrivalDestination: delegation.arrivalInfo?.arrivalDestination || "",
+                arrivalShipments: delegation.arrivalInfo?.arrivalShipments || "",
+                delegationType: delegation.delegationType || "",
+            })
+            
+            setSelectedNationality(delegation.nationality || "")
+            setSelectedAirport(delegation.arrivalInfo?.arrivalHall || "")
+            setSelectedOrigin(delegation.arrivalInfo?.arrivalOrigin || "")
+        } else if (!open) {
+            // فقط لما النموذج يتقفل، نمسح البيانات
+            reset()
+            setSelectedNationality("")
+            setSelectedAirport("")
+            setSearchTerm("")
+            setAirportSearchTerm("")
+            setShowAddNationality(false)
+            setShowAddAirport(false)
+            setNewNationality("")
+            setNewAirport("")
+        }
+    }, [open, delegation, reset])
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="cursor-pointer">
-                    <Icon icon="qlementine-icons:plus-16" />
-                    <span>تسجيل وصول وفد</span>
-                </Button>
+                {children}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[800px] max-h-[95vh] [&_[data-slot='dialog-close']]:!right-[95%] overflow-auto scrollbar-hide">
                 <DialogHeader className="!text-start !py-6 border-b border-neutral-200">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center">
-                            <Icon icon="material-symbols:group-add" fontSize={24} className="text-white" />
+                            <Icon icon="material-symbols:edit-outline-rounded" fontSize={24} className="text-white" />
                         </div>
                         <div>
                             <DialogTitle className="text-2xl font-bold text-primary-600">
-                                إضافة وفد جديد
+                                تعديل بيانات الوفد
                             </DialogTitle>
                             <DialogDescription className="text-neutral-600 mt-1">
-                                يمكنك إضافة وفد جديد من هنا، حينما تنتهي من ملء البيانات قم بالضغط على إضافة.
-                    </DialogDescription>
+                                يمكنك تعديل بيانات الوفد {delegation?.nationality} من هنا، حينما تنتهي من التعديل قم بالضغط على حفظ.
+                            </DialogDescription>
                         </div>
                     </div>
                 </DialogHeader>
@@ -728,7 +820,7 @@ const AddDelegation = ({ subEventId }) => {
                                                 {selectedOrigin || "ابحث واختر المدينة"}
                                             </SelectValue>
                                         </SelectTrigger>
-                                        <SelectContent 
+                                        <SelectContent
                                             className="max-h-[300px] text-right" 
                                             dir="rtl"
                                             onInteractOutside={(e) => {
@@ -939,12 +1031,12 @@ const AddDelegation = ({ subEventId }) => {
                             {loading ? (
                                 <>
                                     <Icon icon="jam:refresh" className="animate-spin mr-2" />
-                                    <span>جاري الإضافة...</span>
+                                    <span>جاري التحديث...</span>
                                 </>
                             ) : (
                                 <>
-                                    <Icon icon="material-symbols:group-add" className="mr-2" />
-                                    <span>إضافة الوفد</span>
+                                    <Icon icon="material-symbols:save" className="mr-2" />
+                                    <span>حفظ التعديلات</span>
                                 </>
                             )}
                         </Button>
@@ -955,5 +1047,4 @@ const AddDelegation = ({ subEventId }) => {
     )
 }
 
-
-export default AddDelegation
+export default EditDelegation

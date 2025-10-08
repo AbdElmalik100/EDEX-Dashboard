@@ -25,12 +25,14 @@ const AddEventCategory = ({ onCategoryAdded }) => {
 
     const validationSchema = yup.object({
         name: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        englishName: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
     })
 
     const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
             name: "",
+            englishName: "",
         }
     })
 
@@ -45,6 +47,7 @@ const AddEventCategory = ({ onCategoryAdded }) => {
             try {
                 const newCategory = addEventCategory({
                     name: data.name,
+                    englishName: data.englishName,
                     icon: selectedEmoji.icon
                 });
                 
@@ -57,6 +60,9 @@ const AddEventCategory = ({ onCategoryAdded }) => {
                 if (onCategoryAdded) {
                     onCategoryAdded(newCategory)
                 }
+                
+                // إرسال custom event لتحديث Header
+                window.dispatchEvent(new CustomEvent('eventAdded'))
             } catch (error) {
                 toast.error("حدث خطأ أثناء إضافة الفئة")
                 setLoading(false)
@@ -103,6 +109,24 @@ const AddEventCategory = ({ onCategoryAdded }) => {
                                     <div className="flex items-center gap-2 text-rose-400 text-sm">
                                         <Icon icon="material-symbols:error-rounded" fontSize={16} />
                                         <span>{errors.name.message}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="englishName" className="text-base font-medium">الاسم الإنجليزي (للروابط)</Label>
+                                <input 
+                                    type="text" 
+                                    id="englishName" 
+                                    name="englishName" 
+                                    placeholder="مثال: conferences" 
+                                    className="w-full p-3 border border-neutral-300 rounded-lg focus:border-primary-600 focus:ring-1 focus:ring-primary-200 transition-all duration-200"
+                                    {...register('englishName')} 
+                                />
+                                {errors.englishName && (
+                                    <div className="flex items-center gap-2 text-rose-400 text-sm">
+                                        <Icon icon="material-symbols:error-rounded" fontSize={16} />
+                                        <span>{errors.englishName.message}</span>
                                     </div>
                                 )}
                             </div>

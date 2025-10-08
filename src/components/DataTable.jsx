@@ -19,20 +19,22 @@ function DataTable({ table, columns, clickableRow = false }) {
     
     return (
         <div className="w-full" dir="rtl">
-            <div className="overflow-hidden rounded-md border">
-                <Table>
+            <div className="rounded-md border">
+                <Table className="w-full table-auto">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
+                                        <TableHead key={header.id} className="h-12 break-words py-3 px-3 bg-gray-100 border-b border-gray-200">
+                                            <div className="break-words whitespace-normal text-sm font-medium text-gray-800">
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(
+                                                        header.column.columnDef.header,
+                                                        header.getContext()
+                                                    )}
+                                            </div>
                                         </TableHead>
                                     )
                                 })}
@@ -48,17 +50,26 @@ function DataTable({ table, columns, clickableRow = false }) {
                                     className={clickableRow && "cursor-pointer"}
                                     onClick={(e) => {
                                         if(clickableRow) {
-                                            if (e.target.closest("button") || e.target.closest("[role='menuitem']") || e.target.closest("[data-slot='dialog-overlay']")) return;
+                                            if (e.target.closest("button") || 
+                                                e.target.closest("[role='menuitem']") || 
+                                                e.target.closest("[data-slot='dialog-overlay']") ||
+                                                e.target.closest("input") ||
+                                                e.target.closest("select") ||
+                                                e.target.closest("textarea") ||
+                                                e.target.closest("[role='dialog']") ||
+                                                e.target.closest(".dialog-content")) return;
                                             navigate(`${route.pathname}/${row.original.id}`);
                                         } else return
                                     }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
+                                        <TableCell key={cell.id} className="h-auto align-top break-words">
+                                            <div className="break-words whitespace-normal">
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </div>
                                         </TableCell>
                                     ))}
                                 </TableRow>

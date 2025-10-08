@@ -8,10 +8,12 @@ import { Icon } from "@iconify/react/dist/iconify.js"
 import { NavLink, useNavigate } from "react-router"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
+import { authService } from "@/services/auth"
 
 
 const Login = () => {
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
     const navigate = useNavigate()
 
     const validationSchema = yup.object({
@@ -27,14 +29,28 @@ const Login = () => {
         }
     })
 
-
-    const onSubmit = handleSubmit((data) => {
-        console.log(data);
+    const onSubmit = handleSubmit(async (data) => {
         setLoading(true)
-        setTimeout(() => {
+        setError("")
+        
+        try {
+            const response = await authService.login(data)
+
+            
+            // Check if user is Super Admin
+            if (response.user.role === 'super_admin') {
+                // Redirect to Django Admin
+                window.location.href = 'http://localhost:8000/admin/'
+            } else {
+                // Redirect to normal dashboard
+                navigate("/")
+            }
+        } catch (error) {
+            console.error("Login error:", error)
+            setError(error.detail || "حدث خطأ في تسجيل الدخول")
+        } finally {
             setLoading(false)
-            navigate("/")
-        }, 1500)
+        }
     })
     return (
         <div className='login-page bg-white w-1/4 flex flex-col gap-2 p-8 px-12 justify-center'>
@@ -48,6 +64,11 @@ const Login = () => {
                     <p>
                         منظومة تسجيل الوفود و الاعضاء لمعرض ايديكس
                     </p>
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded w-full">
+                            {error}
+                        </div>
+                    )}
                 </div>
                 <div className="grid gap-3">
                     <Label htmlFor="username">اسم المستخدم</Label>

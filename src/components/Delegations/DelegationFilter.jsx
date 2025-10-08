@@ -18,8 +18,9 @@ import {
 const DelegationFilter = ({ table, data }) => {
     const [filters, setFilters] = useState({
         nationality: '',
-        destination: '',
+        origin: '',
         delegationStatus: '',
+        delegationType: '',
         date: '',
         startDate: '',
         endDate: '',
@@ -27,8 +28,25 @@ const DelegationFilter = ({ table, data }) => {
 
 
     const applyFilter = (val, fieldName) => {
-        table.getColumn(fieldName)?.setFilterValue(val === "" ? undefined : val)
-        setFilters({ ...filters, [fieldName]: val })
+        const column = table.getColumn(fieldName)
+        if (column) {
+            column.setFilterValue(val === "" ? undefined : val)
+        } else {
+            console.error('DelegationFilter: Column not found:', fieldName)
+        }
+        
+        // تحديث الـ filter state بناءً على نوع الحقل
+        if (fieldName === 'arrivalInfo_arrivalOrigin') {
+            setFilters({ ...filters, origin: val })
+        } else if (fieldName === 'nationality') {
+            setFilters({ ...filters, nationality: val })
+        } else if (fieldName === 'delegationStatus') {
+            setFilters({ ...filters, delegationStatus: val })
+        } else if (fieldName === 'delegationType') {
+            setFilters({ ...filters, delegationType: val })
+        } else {
+            setFilters({ ...filters, [fieldName]: val })
+        }
     }
 
     const applyDateRangeFilter = (start, end) => {
@@ -60,8 +78,9 @@ const DelegationFilter = ({ table, data }) => {
     const clearFilter = () => {
         setFilters({
             nationality: '',
-            destination: '',
+            origin: '',
             delegationStatus: '',
+            delegationType: '',
             date: '',
             startDate: '',
             endDate: '',
@@ -105,20 +124,28 @@ const DelegationFilter = ({ table, data }) => {
                             </Select>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="maxWidth">وجهة الوصول</Label>
-                            <Select dir='rtl' value={filters.destination} onValueChange={val => applyFilter(val, 'arrivalInfo.arrivalDestination')}>
+                            <Label htmlFor="maxWidth">قادمة من</Label>
+                            <Select dir='rtl' value={filters.origin} onValueChange={val => applyFilter(val, 'arrivalInfo_arrivalOrigin')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="وجهة الوصول" />
+                                    <SelectValue placeholder="قادمة من" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {
-                                        data
-                                            .map(el => el.arrivalInfo?.arrivalDestination)
+                                    {(() => {
+                                        const origins = data
+                                            .map(el => el.arrivalInfo?.arrivalOrigin)
                                             .filter(Boolean)
-                                            .map((destination, index) => (
-                                                <SelectItem key={index} value={destination}>{destination}</SelectItem>
-                                            ))
-                                    }
+                                        
+                                        // إزالة التكرارات وترتيب القائمة
+                                        const uniqueOrigins = [...new Set(origins)].sort((a, b) => a.localeCompare(b, 'ar'))
+                                        
+                                        if (uniqueOrigins.length === 0) {
+                                            return <SelectItem value="no-data">لا توجد بيانات</SelectItem>
+                                        }
+                                        
+                                        return uniqueOrigins.map((origin, index) => (
+                                            <SelectItem key={index} value={origin}>{origin}</SelectItem>
+                                        ))
+                                    })()}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -136,6 +163,18 @@ const DelegationFilter = ({ table, data }) => {
                             </Select>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="type">نوع الوفد</Label>
+                            <Select dir='rtl' value={filters.delegationType} onValueChange={val => applyFilter(val, 'delegationType')}>
+                                <SelectTrigger className="w-full !ring-0 col-span-2">
+                                    <SelectValue placeholder="نوع الوفد" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="military">عسكري</SelectItem>
+                                    <SelectItem value="civil">مدني</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-3 items-center gap-4">
                             <Label htmlFor="height">تاريخ الوصول</Label>
                             <input 
                                 className="col-span-2 !ring-0" 
@@ -143,6 +182,7 @@ const DelegationFilter = ({ table, data }) => {
                                 id="date" 
                                 name="date" 
                                 value={filters.date} 
+                                style={{ direction: 'ltr' }}
                                 onChange={(e) => {
                                     const formattedDate = e.target.value
                                     setFilters({ ...filters, date: formattedDate, startDate: '', endDate: '' });
@@ -169,12 +209,14 @@ const DelegationFilter = ({ table, data }) => {
                                     className="w-full border rounded px-2 py-1"
                                     type="date"
                                     value={filters.startDate}
+                                    style={{ direction: 'ltr' }}
                                     onChange={(e) => applyDateRangeFilter(e.target.value, filters.endDate)}
                                 />
                                 <input
                                     className="w-full border rounded px-2 py-1"
                                     type="date"
                                     value={filters.endDate}
+                                    style={{ direction: 'ltr' }}
                                     onChange={(e) => applyDateRangeFilter(filters.startDate, e.target.value)}
                                 />
                             </div>

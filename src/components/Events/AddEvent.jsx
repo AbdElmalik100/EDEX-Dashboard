@@ -37,14 +37,91 @@ const AddEvent = ({ onEventAdded }) => {
     const onSubmit = handleSubmit((data) => {
         setLoading(true)
         setTimeout(() => {
-            toast.success("تم اضافة حدث جديد")
-            reset()
-            setLoading(false)
-            setOpen(false)
-            
-            // إرسال البيانات للوالد إذا كان متوفراً
-            if (onEventAdded) {
-                onEventAdded(data)
+            try {
+                // جلب الأحداث الحالية من localStorage
+                const savedEvents = localStorage.getItem('mainEvents')
+                let events = []
+                
+                if (savedEvents) {
+                    events = JSON.parse(savedEvents)
+                }
+                
+                // إضافة الحدث الجديد
+                const newSubEvent = {
+                    id: Date.now(),
+                    name: data.name,
+                    created_at: new Date().toISOString(),
+                    delegationCount: 0,
+                    membersCount: 0
+                }
+                
+                // البحث عن الحدث الرئيسي الحالي (من الـ URL أو الـ props)
+                const currentPath = window.location.pathname
+                let mainEventName = ''
+                
+                // تحديد اسم الحدث الرئيسي من الـ URL
+                if (currentPath.includes('/edex')) {
+                    mainEventName = 'ايديكس'
+                } else if (currentPath.includes('/equestrianism')) {
+                    mainEventName = 'الفروسية'
+                } else if (currentPath.includes('/brightstar')) {
+                    mainEventName = 'النجم الساطع'
+                } else if (currentPath.includes('/spaceexpo')) {
+                    mainEventName = 'معرض الفضاء'
+                } else if (currentPath.includes('/ben')) {
+                    mainEventName = 'بن تن'
+                } else {
+                    // للأحداث الجديدة، نحاول استخراج الاسم من الـ URL
+                    const pathSegments = currentPath.split('/').filter(segment => segment)
+                    if (pathSegments.length > 0) {
+                        const eventPath = pathSegments[0]
+                        // البحث في الأحداث المحفوظة
+                        const foundEvent = events.find(e => {
+                            let eventPathFromName = ''
+                            if (e.englishName) {
+                                eventPathFromName = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                            } else {
+                                eventPathFromName = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                            }
+                            return eventPathFromName === eventPath
+                        })
+                        if (foundEvent) {
+                            mainEventName = foundEvent.name
+                        }
+                    }
+                }
+                
+                // إضافة الحدث الفرعي للحدث الرئيسي
+                const updatedEvents = events.map(event => {
+                    if (event.name === mainEventName) {
+                        return {
+                            ...event,
+                            sub_events: [...(event.sub_events || []), newSubEvent]
+                        }
+                    }
+                    return event
+                })
+                
+                // حفظ الأحداث المحدثة
+                localStorage.setItem('mainEvents', JSON.stringify(updatedEvents))
+                
+                toast.success("تم اضافة حدث جديد")
+                reset()
+                setLoading(false)
+                setOpen(false)
+                
+                // إرسال البيانات للوالد إذا كان متوفراً
+                if (onEventAdded) {
+                    onEventAdded(newSubEvent)
+                }
+                
+                // إرسال custom event لتحديث السايد بار والصفحات الأخرى
+                window.dispatchEvent(new CustomEvent('eventAdded'))
+                
+            } catch (error) {
+                console.error('خطأ في إضافة الحدث:', error)
+                toast.error("حدث خطأ أثناء إضافة الحدث")
+                setLoading(false)
             }
         }, 1500)
     })

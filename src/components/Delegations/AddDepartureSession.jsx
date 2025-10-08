@@ -34,7 +34,9 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
 
     const validationSchema = yup.object({
         date: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
-        time: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
+        time: yup.string()
+            .required("هذا الحقل لا يمكن ان يكون فارغا")
+            .matches(/^[0-9]{4}$/, "يجب أن يكون الوقت بصيغة HHMM (مثل: 1430)"),
         hall: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         airline: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
         flightNumber: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
@@ -46,8 +48,8 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
     const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
-            date: new Date().toLocaleDateString('en-CA'),
-            time: "14:30",
+            date: "",
+            time: "",
             hall: "",
             airline: "",
             flightNumber: "",
@@ -69,6 +71,21 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
             return
         }
 
+        // تحويل IDs إلى member objects كاملة
+        const memberObjects = selectedMembers.map(memberId => {
+            // البحث عن العضو في localStorage
+            try {
+                const savedMembers = localStorage.getItem('members')
+                if (savedMembers) {
+                    const members = JSON.parse(savedMembers)
+                    return members.find(member => member.id === memberId)
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الأعضاء:', error)
+            }
+            return null
+        }).filter(member => member !== null)
+
         const newSession = {
             id: `dep_${Date.now()}`,
             date: data.date,
@@ -79,11 +96,41 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
             destination: data.destination,
             receptor: data.receptor,
             shipments: data.shipments,
-            members: selectedMembers,
+            members: memberObjects, // حفظ member objects كاملة
             notes: data.notes || ""
         }
 
         setLoading(true)
+        
+        // تحديث حالة الأعضاء في localStorage فوراً (بدون setTimeout)
+
+        try {
+            const savedMembers = localStorage.getItem('members')
+            if (savedMembers) {
+                const members = JSON.parse(savedMembers)
+
+                
+                const updatedMembers = members.map(member => {
+                    if (selectedMembers.includes(member.id)) {
+
+                        return { 
+                            ...member, 
+                            memberStatus: 'departed',
+                            departureDate: data.date // تحديث تاريخ المغادرة
+                        }
+                    }
+                    return member
+                })
+                localStorage.setItem('members', JSON.stringify(updatedMembers))
+                
+                // إرسال events لتحديث المكونات
+                window.dispatchEvent(new CustomEvent('memberUpdated'))
+                window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث حالة الأعضاء:', error)
+        }
+        
         setTimeout(() => {
             onAdd(newSession)
             toast.success("تم إضافة جلسة مغادرة جديدة")
@@ -127,12 +174,30 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-3 w-full">
                                 <Label htmlFor="date">التاريخ</Label>
-                                <input type="date" id="date" name="date" {...register('date')} />
+                                <input type="date" id="date" name="date" style={{ direction: 'ltr' }} {...register('date')} />
                                 {errors.date && <span className="text-sm text-rose-400 block">{errors.date.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="time">سعت</Label>
-                                <input type="time" id="time" name="time" {...register('time')} />
+                                <Label htmlFor="time">سعت (HHMM)</Label>
+                                <input 
+                                    type="text" 
+                                    id="time" 
+                                    name="time" 
+                                    {...register('time')} 
+                                    placeholder="1430"
+                                    maxLength="4"
+                                    pattern="[0-9]{4}"
+                                    onInput={(e) => {
+                                        // إزالة أي حروف غير الأرقام
+                                        let value = e.target.value.replace(/[^0-9]/g, '');
+                                        // تحديد الحد الأقصى لـ 4 أرقام
+                                        if (value.length > 4) {
+                                            value = value.substring(0, 4);
+                                        }
+                                        e.target.value = value;
+                                    }}
+                                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200 bg-neutral-50 focus:bg-white"
+                                />
                                 {errors.time && <span className="text-sm text-rose-400 block">{errors.time.message}</span>}
                             </div>
                         </div>
@@ -174,8 +239,8 @@ const AddDepartureSession = ({ delegation, onAdd, remainingMembers }) => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-3 w-full">
-                                <Label htmlFor="receptor">المستقبل</Label>
-                                <input type="text" id="receptor" name="receptor" placeholder="ادخل اسم المستقبل" {...register('receptor')} />
+                                <Label htmlFor="receptor">المودع</Label>
+                                <input type="text" id="receptor" name="receptor" placeholder="ادخل اسم المودع" {...register('receptor')} />
                                 {errors.receptor && <span className="text-sm text-rose-400 block">{errors.receptor.message}</span>}
                             </div>
                             <div className="grid gap-3 w-full">

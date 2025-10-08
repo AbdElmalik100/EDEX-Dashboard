@@ -1,19 +1,103 @@
 import { Icon } from "@iconify/react/dist/iconify.js"
-import { NavLink } from "react-router"
+import { NavLink, useNavigate } from "react-router"
 import { events } from "../../constants"
+import { useState, useEffect } from "react"
 
 
-const EventsList = ({ events: customEvents, categoryId }) => {
+const EventsList = ({ events: customEvents, categoryId, mainEventName }) => {
+    const navigate = useNavigate()
+    const [eventsWithStats, setEventsWithStats] = useState([])
+    
     // استخدام البيانات الممررة أو البيانات الافتراضية
     const eventsData = customEvents || events;
+    
+    // حساب الإحصائيات الحقيقية لكل حدث
+    useEffect(() => {
+        const calculateStats = () => {
+            const updatedEvents = eventsData.map(event => {
+                // جلب الوفود
+                const savedDelegations = localStorage.getItem('delegations')
+                let delegationCount = 0
+                
+                if (savedDelegations) {
+                    try {
+                        const delegations = JSON.parse(savedDelegations)
+                        delegationCount = delegations.filter(d => 
+                            d.subEventId === event.id || d.subEventId === parseInt(event.id)
+                        ).length
+                    } catch (error) {
+                        console.error('خطأ في تحليل بيانات الوفود:', error)
+                    }
+                }
+                
+                // جلب الأعضاء
+                const savedMembers = localStorage.getItem('members')
+                let memberCount = 0
+                
+                if (savedMembers) {
+                    try {
+                        const members = JSON.parse(savedMembers)
+                        memberCount = members.filter(m => 
+                            m.subEventId === event.id || m.subEventId === parseInt(event.id)
+                        ).length
+                    } catch (error) {
+                        console.error('خطأ في تحليل بيانات الأعضاء:', error)
+                    }
+                }
+                
+                return {
+                    ...event,
+                    delegationCount,
+                    membersCount: memberCount,
+                    date: event.date || new Date(event.created_at).toLocaleDateString('ar-EG')
+                }
+            })
+            
+            setEventsWithStats(updatedEvents)
+        }
+        
+        calculateStats()
+        
+        // الاستماع لتغييرات localStorage
+        const handleStorageChange = () => {
+            calculateStats()
+        }
+        
+        window.addEventListener('storage', handleStorageChange)
+        window.addEventListener('delegationAdded', handleStorageChange)
+        window.addEventListener('delegationDeleted', handleStorageChange)
+        window.addEventListener('memberAdded', handleStorageChange)
+        window.addEventListener('memberDeleted', handleStorageChange)
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('delegationAdded', handleStorageChange)
+            window.removeEventListener('delegationDeleted', handleStorageChange)
+            window.removeEventListener('memberAdded', handleStorageChange)
+            window.removeEventListener('memberDeleted', handleStorageChange)
+        }
+    }, [eventsData])
     
     return (
         <div className="flex flex-col gap-4">
             {
-                eventsData.map((event, index) => (
-                    <NavLink 
+                eventsWithStats.map((event, index) => (
+                    <div 
                         key={event.id || index} 
-                        to={categoryId ? `/category/${categoryId}/event/${event.id || index}` : `/edex/${index}`} 
+                        onClick={() => {
+                            if (categoryId) {
+                                navigate(`/category/${categoryId}/event/${event.id || index}`)
+                            } else if (mainEventName) {
+                                // التنقل إلى صفحة وفود الحدث الفرعي
+                                const mainEventPath = mainEventName === 'ايديكس' ? 'edex' :
+                                                   mainEventName === 'الفروسية' ? 'equestrianism' :
+                                                   mainEventName === 'النجم الساطع' ? 'brightstar' :
+                                                   mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                navigate(`/${mainEventPath}/${event.id}`)
+                            } else {
+                                navigate(`/edex/${event.id}`)
+                            }
+                        }}
                         className="box bg-white w-full border border-neutral-300 rounded-xl flex flex-col transition-all ease-out hover:shadow cursor-pointer hover:border-primary-400"
                     >
                         <div className="w-full border-b p-6 border-neutral-300 flex items-center gap-4 pb-6">
@@ -57,7 +141,7 @@ const EventsList = ({ events: customEvents, categoryId }) => {
                                 </div>
                             </div>
                         </div>
-                    </NavLink>
+                    </div>
                 ))
             }
         </div>

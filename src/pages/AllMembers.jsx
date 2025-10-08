@@ -1,16 +1,201 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, getPaginationRowModel } from "@tanstack/react-table"
 import { Icon } from "@iconify/react/dist/iconify.js"
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from "lucide-react"
 import DataTable from "../components/DataTable"
 import AllMembersTableToolbar from "../components/Members/AllMembersTableToolbar"
+import DeletePopup from "../components/DeletePopup"
+import EditMember from "../components/Members/EditMember"
 import { members } from "../data"
+import { toast } from "sonner"
 
 const AllMembers = () => {
-    const [data] = useState(members)
+    const [data, setData] = useState([])
+    
+    // دالة تنظيف الأعضاء المعلقة
+    const cleanupOrphanedMembers = () => {
+        try {
+            const savedDelegations = localStorage.getItem('delegations')
+            const savedMembers = localStorage.getItem('members')
+            
+            if (savedDelegations && savedMembers) {
+                const delegations = JSON.parse(savedDelegations)
+                const members = JSON.parse(savedMembers)
+                
+                const delegationIds = delegations.map(d => d.id)
+                const validMembers = members.filter(member => {
+                    if (member.delegation && member.delegation.id) {
+                        return delegationIds.includes(member.delegation.id)
+                    }
+                    return true
+                })
+                
+                const deletedCount = members.length - validMembers.length
+                
+                if (deletedCount > 0) {
+                    localStorage.setItem('members', JSON.stringify(validMembers))
+                    window.dispatchEvent(new CustomEvent('memberDeleted'))
+                    toast.success(`تم حذف ${deletedCount} عضو معلق`)
+                    loadMembers() // إعادة تحميل البيانات
+                } else {
+                    toast.info('لا توجد أعضاء معلقة')
+                }
+            }
+        } catch (error) {
+            console.error('خطأ في تنظيف الأعضاء:', error)
+            toast.error('حدث خطأ أثناء تنظيف الأعضاء')
+        }
+    }
+    
+    // تحميل الأعضاء من localStorage
+    useEffect(() => {
+        const loadMembers = () => {
+
+            const savedMembers = localStorage.getItem('members')
+            const savedDelegations = localStorage.getItem('delegations')
+
+            
+            if (savedMembers && savedMembers !== '[]') {
+                try {
+                    const parsedMembers = JSON.parse(savedMembers)
+                    const parsedDelegations = savedDelegations ? JSON.parse(savedDelegations) : []
+
+                    
+                    // تحديث حالة الأعضاء بناءً على جلسات المغادرة
+                    const updatedMembers = parsedMembers.map(member => {
+                        if (member.delegation && member.delegation.id) {
+                            const delegation = parsedDelegations.find(d => d.id === member.delegation.id)
+                            if (delegation && delegation.departureInfo && delegation.departureInfo.departureSessions) {
+                                // البحث عن العضو في جلسات المغادرة
+                                let departureDate = null
+                                let isInDepartureSession = false
+                                
+                                for (const session of delegation.departureInfo.departureSessions) {
+                                    const memberInSession = session.members.find(sessionMember => {
+                                        if (typeof sessionMember === 'object' && sessionMember.id) {
+                                            return sessionMember.id === member.id
+                                        }
+                                        return sessionMember === member.id
+                                    })
+                                    
+                                    if (memberInSession) {
+                                        isInDepartureSession = true
+                                        departureDate = session.date
+                                        break
+                                    }
+                                }
+                                
+                                return {
+                                    ...member,
+                                    memberStatus: isInDepartureSession ? "departed" : "not_departed",
+                                    departureDate: departureDate
+                                }
+                            }
+                        }
+                        return { ...member, memberStatus: "not_departed", departureDate: null }
+                    })
+                    
+                    // عرض بيانات الوفد لكل عضو
+                    updatedMembers.forEach(member => {
+                        if (member.delegation) {
+
+                        }
+                    })
+                    
+                    if (Array.isArray(updatedMembers)) {
+                        setData(updatedMembers)
+
+                    } else {
+                        setData([])
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحليل بيانات الأعضاء:', error)
+                    setData([])
+                }
+            } else {
+
+                setData([])
+            }
+        }
+        
+        loadMembers()
+        
+        // الاستماع لتغييرات localStorage
+        const handleStorageChange = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('storage', handleStorageChange)
+        
+        // فحص دوري للتغييرات (للتطوير)
+        const interval = setInterval(loadMembers, 1000)
+        
+        // إضافة event listener للتحديث عند إضافة عضو جديد
+        const handleMemberAdded = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('memberAdded', handleMemberAdded)
+        
+        // إضافة event listener للتحديث عند تغيير localStorage
+        const handleStorageUpdate = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('storage', handleStorageUpdate)
+        
+        // إضافة event listener إضافي
+        const handleLocalStorageUpdate = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('localStorageUpdated', handleLocalStorageUpdate)
+        
+        // إضافة event listener لحذف العضو
+        const handleMemberDeleted = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('memberDeleted', handleMemberDeleted)
+        
+        // إضافة event listener لتحديث العضو
+        const handleMemberUpdated = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('memberUpdated', handleMemberUpdated)
+        
+        // إضافة event listener لتحديث الوفد
+        const handleDelegationUpdated = () => {
+            loadMembers()
+        }
+        
+        window.addEventListener('delegationUpdated', handleDelegationUpdated)
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', handleStorageUpdate)
+            window.removeEventListener('memberAdded', handleMemberAdded)
+            window.removeEventListener('localStorageUpdated', handleLocalStorageUpdate)
+            window.removeEventListener('memberDeleted', handleMemberDeleted)
+            window.removeEventListener('memberUpdated', handleMemberUpdated)
+            window.removeEventListener('delegationUpdated', handleDelegationUpdated)
+            clearInterval(interval)
+        }
+    }, [])
+    
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
     const [columnVisibility, setColumnVisibility] = useState({
-        job: false // إخفاء عمود ما يعادلها افتراضياً
+        job: false, // إخفاء عمود الوظيفة المدنية افتراضياً
+        equivalentRole: true // إظهار عمود المنصب المعادل افتراضياً
     })
     const [rowSelection, setRowSelection] = useState({})
     const [globalFilter, setGlobalFilter] = useState('')
@@ -20,7 +205,7 @@ const AllMembers = () => {
             const cols = [
             {
                 accessorKey: "memberStatus",
-                header: () => <div className="text-start">حالة العضو</div>,
+                header: () => <div className="text-center">حالة العضو</div>,
                 cell: ({ row }) => {
                     const status = row.getValue("memberStatus")
                     let statusIcon = ""
@@ -41,8 +226,10 @@ const AllMembers = () => {
                     }
                     
                     return (
-                        <div className="flex items-center gap-2">
-                            <Icon icon={statusIcon} fontSize={20} className={iconColor} />
+                        <div className="flex justify-center">
+                            <div className="px-1 py-1 rounded-lg text-lg font-medium text-center bg-gray-200 w-fit">
+                                <Icon icon={statusIcon} fontSize={20} className={iconColor} />
+                            </div>
                         </div>
                     )
                 },
@@ -54,9 +241,11 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "rank",
-                header: () => <div className="text-start">الرتبة</div>,
+                header: () => <div className="text-center">الرتبة</div>,
                 cell: ({ row }) => (
-                    <span className="text-gray-700">{row.getValue("rank")}</span>
+                    <div className="text-center">
+                        <span className="text-gray-700">{row.getValue("rank")}</span>
+                    </div>
                 ),
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
@@ -66,16 +255,20 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "name",
-                header: () => <div className="text-start">الاسم</div>,
+                header: () => <div className="text-center">الاسم</div>,
                 cell: ({ row }) => (
-                    <span className="font-medium">{row.getValue("name")}</span>
+                    <div className="text-center">
+                        <span className="font-medium">{row.getValue("name")}</span>
+                    </div>
                 ),
             },
             {
                 accessorKey: "role",
-                header: () => <div className="text-start">الوظيفة</div>,
+                header: () => <div className="text-center">الوظيفة المدنية</div>,
                 cell: ({ row }) => (
-                    <span className="text-gray-700">{row.getValue("role")}</span>
+                    <div className="text-center">
+                        <span className="text-gray-700">{row.getValue("role")}</span>
+                    </div>
                 ),
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
@@ -84,10 +277,26 @@ const AllMembers = () => {
                 },
             },
             {
-                accessorKey: "job",
-                header: () => <div className="text-start">ما يعادلها</div>,
+                accessorKey: "equivalentRole",
+                header: () => <div className="text-center">المنصب العسكري المعادل</div>,
                 cell: ({ row }) => (
-                    <span className="text-gray-700">{row.getValue("job") || "غير محدد"}</span>
+                    <div className="text-center">
+                        <span className="text-gray-700 font-medium">{row.getValue("equivalentRole") || "غير محدد"}</span>
+                    </div>
+                ),
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const equivalentRole = row.getValue(columnId)
+                    return equivalentRole && equivalentRole.toLowerCase().includes(filterValue.toLowerCase())
+                },
+            },
+            {
+                accessorKey: "job",
+                header: () => <div className="text-center">ما يعادلها (قديم)</div>,
+                cell: ({ row }) => (
+                    <div className="text-center">
+                        <span className="text-gray-700">{row.getValue("job") || "غير محدد"}</span>
+                    </div>
                 ),
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
@@ -102,17 +311,29 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "delegation.delegationHead",
-                header: () => <div className="text-start">اسم الوفد</div>,
+                header: () => <div className="text-center">اسم الوفد</div>,
                 cell: ({ row }) => {
                     const delegationData = row.original.delegation
+
+
+                    
                     if (delegationData && delegationData.nationality && delegationData.delegationHead) {
+                        const displayText = `${delegationData.nationality} - ${delegationData.delegationHead}`
+
                         return (
-                            <span className="text-gray-700">
-                                {delegationData.nationality} - {delegationData.delegationHead}
-                            </span>
+                            <div className="text-center">
+                                <span className="text-gray-700">
+                                    {displayText}
+                                </span>
+                            </div>
                         )
                     }
-                    return <span className="text-gray-400">بدون وفد</span>
+
+                    return (
+                        <div className="text-center">
+                            <span className="text-gray-400">بدون وفد</span>
+                        </div>
+                    )
                 },
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
@@ -128,9 +349,11 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "arrivalDate",
-                header: () => <div className="text-start">تاريخ الوصول</div>,
+                header: () => <div className="text-center">تاريخ الوصول</div>,
                 cell: ({ row }) => (
-                    <span className="text-gray-700">{row.getValue("arrivalDate") || "غير محدد"}</span>
+                    <div className="text-center">
+                        <span className="text-gray-700">{row.getValue("arrivalDate") || "غير محدد"}</span>
+                    </div>
                 ),
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
@@ -153,11 +376,15 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "departureDate",
-                header: () => <div className="text-start">تاريخ المغادرة</div>,
+                header: () => <div className="text-center">تاريخ المغادرة</div>,
                 cell: ({ row }) => {
                     const departureDate = row.getValue("departureDate")
+                    const memberStatus = row.original.memberStatus
+
                     return (
-                        <span className="text-gray-700">{departureDate || "لم يغادر"}</span>
+                        <div className="text-center">
+                            <span className="text-gray-700">{departureDate || "لم يغادر"}</span>
+                        </div>
                     )
                 },
                 filterFn: (row, columnId, filterValue) => {
@@ -177,6 +404,38 @@ const AllMembers = () => {
                     }
                     
                     return true
+                },
+            },
+            {
+                id: "actions",
+                enableHiding: false,
+                header: () => <div className="text-center">الإجراءات</div>,
+                cell: ({ row }) => {
+                    return (
+                        <div className="flex justify-center">
+                            <DropdownMenu dir='rtl'>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0 !ring-0">
+                                        <MoreHorizontal />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <EditMember member={row.original}>
+                                        <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                                            <Icon icon={'material-symbols:edit-outline-rounded'} />
+                                            <span>تعديل</span>
+                                        </DropdownMenuItem>
+                                    </EditMember>
+                                    <DeletePopup item={row}>
+                                        <DropdownMenuItem variant="destructive" onSelect={e => e.preventDefault()}>
+                                            <Icon icon={'mynaui:trash'} />
+                                            <span>حذف</span>
+                                        </DropdownMenuItem>
+                                    </DeletePopup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    )
                 },
             },
         ]
@@ -206,7 +465,7 @@ const AllMembers = () => {
             globalFilter,
         },
     })
-
+    
     // حساب الإحصائيات
     const totalMembers = data.length
     const departedMembers = data.filter(member => member.memberStatus === "departed").length
