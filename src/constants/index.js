@@ -12,44 +12,13 @@ export const navLinks = [
         to: "/",
     },
     {
-        name: "ايديكس",
-        icon: "fa-solid:fighter-jet",
-        to: "/edex",
-        type: "main-event"
-    },
-    {
-        name: "الفروسية",
-        icon: "fa7-solid:horse-head",
-        to: "/equestrianism",
-        type: "main-event"
-    },
-    {
-        name: "النجم الساطع",
-        icon: "material-symbols:star-shine-rounded",
-        to: "/brightstar",
-        type: "main-event"
-    },
-    {
         name: "إدارة الأحداث",
         icon: "material-symbols:event",
         to: "/events-management",
     },
 ]
 
-export const events = [
-    {
-        name: "ايديكس 2025",
-        date: new Date().toLocaleString(),
-        delegationCount: 132,
-        membersCount: 361
-    },
-    {
-        name: "ايديكس 2024",
-        date: new Date().toLocaleString(),
-        delegationCount: 148,
-        membersCount: 256
-    },
-]
+export const events = []
 
 export const moveTypeOptions = [
     {

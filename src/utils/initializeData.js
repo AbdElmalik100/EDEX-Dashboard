@@ -24,83 +24,11 @@ export const initializeDefaultData = () => {
         }
     }
     
-    // تهيئة الأحداث الرئيسية
-    const defaultMainEvents = [
-        {
-            id: 1,
-            name: "ايديكس",
-            englishName: "edex",
-            icon: "fa-solid:fighter-jet",
-            created_at: new Date().toISOString(),
-            sub_events: [
-                {
-                    id: 1,
-                    name: "ايديكس 2025",
-                    created_at: new Date().toISOString(),
-                    delegationCount: 0,
-                    membersCount: 0
-                },
-                {
-                    id: 2,
-                    name: "ايديكس 2024",
-                    created_at: new Date().toISOString(),
-                    delegationCount: 0,
-                    membersCount: 0
-                }
-            ]
-        },
-        {
-            id: 2,
-            name: "الفروسية",
-            englishName: "equestrianism",
-            icon: "fa7-solid:horse-head",
-            created_at: new Date().toISOString(),
-            sub_events: [
-                {
-                    id: 3,
-                    name: "بطولة الفروسية 2025",
-                    created_at: new Date().toISOString(),
-                    delegationCount: 0,
-                    membersCount: 0
-                }
-            ]
-        },
-        {
-            id: 3,
-            name: "النجم الساطع",
-            englishName: "brightstar",
-            icon: "material-symbols:star-shine-rounded",
-            created_at: new Date().toISOString(),
-            sub_events: [
-                {
-                    id: 4,
-                    name: "النجم الساطع 2025",
-                    created_at: new Date().toISOString(),
-                    delegationCount: 0,
-                    membersCount: 0
-                }
-            ]
-        },
-        {
-            id: 4,
-            name: "معرض الفضاء",
-            englishName: "spaceexpo",
-            icon: "material-symbols:rocket-launch",
-            created_at: new Date().toISOString(),
-            sub_events: [
-                {
-                    id: 1759770253670,
-                    name: "معرض الفضاء 2025",
-                    created_at: new Date().toISOString(),
-                    delegationCount: 0,
-                    membersCount: 0
-                }
-            ]
-        }
-    ]
+    // تهيئة الأحداث الرئيسية - فارغة للبداية
+    const defaultMainEvents = []
 
     // حفظ البيانات في localStorage
-    // الأحداث: احتفظ بالبيانات الموجودة أو استخدم الافتراضية
+    // الأحداث: احتفظ بالبيانات الموجودة أو ابدأ فارغ
     if (!localStorage.getItem('mainEvents') || localStorage.getItem('mainEvents') === '[]') {
         localStorage.setItem('mainEvents', JSON.stringify(defaultMainEvents))
     }

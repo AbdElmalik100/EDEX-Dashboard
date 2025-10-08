@@ -21,27 +21,15 @@ const SideBar = () => {
                 const eventsMap = {}
                 const dynamicLinks = []
                 
-                events.forEach(event => {
-                    // تحويل اسم الحدث إلى مسار مناسب
-                    let path = ''
-                    switch(event.name) {
-                        case 'ايديكس':
-                            path = '/edex'
-                            break
-                        case 'الفروسية':
-                            path = '/equestrianism'
-                            break
-                        case 'النجم الساطع':
-                            path = '/brightstar'
-                            break
-                        default:
-                            // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
+                        events.forEach(event => {
+                            // تحويل اسم الحدث إلى مسار مناسب
+                            let path = ''
+                            // استخدام الاسم الإنجليزي إذا كان متوفراً
                             if (event.englishName) {
                                 path = `/${event.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')}`
                             } else {
                                 path = `/${event.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')}`
                             }
-                    }
                     
                     eventsMap[path] = event.sub_events?.map(subEvent => ({
                         id: subEvent.id,
@@ -65,23 +53,11 @@ const SideBar = () => {
                 console.error('خطأ في تحليل بيانات الأحداث:', error)
                 setDynamicNavLinks([])
             }
-        } else {
-            // البيانات الافتراضية
-            const mockSubEvents = {
-                '/edex': [
-                    { id: 1, name: "ايديكس 2025", to: "/edex/1" },
-                    { id: 2, name: "ايديكس 2024", to: "/edex/2" }
-                ],
-                '/equestrianism': [
-                    { id: 3, name: "بطولة الفروسية 2025", to: "/equestrianism/1" }
-                ],
-                '/brightstar': [
-                    { id: 4, name: "النجم الساطع 2025", to: "/brightstar/1" }
-                ]
+            } else {
+                // لا توجد أحداث - ابدأ فارغ
+                setSubEvents({})
+                setDynamicNavLinks([])
             }
-            setSubEvents(mockSubEvents)
-            setDynamicNavLinks([])
-        }
     }, [])
 
     // الاستماع لتغييرات البيانات
@@ -97,23 +73,11 @@ const SideBar = () => {
                     events.forEach(event => {
                         // تحويل اسم الحدث إلى مسار مناسب
                         let path = ''
-                        switch(event.name) {
-                            case 'ايديكس':
-                                path = '/edex'
-                                break
-                            case 'الفروسية':
-                                path = '/equestrianism'
-                                break
-                            case 'النجم الساطع':
-                                path = '/brightstar'
-                                break
-                            default:
-                                // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
-                                if (event.englishName) {
-                                    path = `/${event.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')}`
-                                } else {
-                                    path = `/${event.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')}`
-                                }
+                        // استخدام الاسم الإنجليزي إذا كان متوفراً
+                        if (event.englishName) {
+                            path = `/${event.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')}`
+                        } else {
+                            path = `/${event.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')}`
                         }
                         
                         eventsMap[path] = event.sub_events?.map(subEvent => ({
@@ -213,23 +177,11 @@ const SideBar = () => {
                         const events = JSON.parse(savedEvents)
                         const event = events.find(e => {
                             let eventPath = ''
-                            switch(e.name) {
-                                case 'ايديكس':
-                                    eventPath = '/edex'
-                                    break
-                                case 'الفروسية':
-                                    eventPath = '/equestrianism'
-                                    break
-                                case 'النجم الساطع':
-                                    eventPath = '/brightstar'
-                                    break
-                                default:
-                                    // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
-                                    if (e.englishName) {
-                                        eventPath = `/${e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')}`
-                                    } else {
-                                        eventPath = `/${e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')}`
-                                    }
+                            // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
+                            if (e.englishName) {
+                                eventPath = `/${e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')}`
+                            } else {
+                                eventPath = `/${e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')}`
                             }
                             return eventPath === path
                         })

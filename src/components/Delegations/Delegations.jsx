@@ -335,12 +335,18 @@ const Delegations = ({ subEventId }) => {
         window.addEventListener('delegationAdded', handleStorageChange)
         window.addEventListener('delegationDeleted', handleStorageChange)
         window.addEventListener('delegationUpdated', handleStorageChange)
+        window.addEventListener('memberAdded', handleStorageChange)
+        window.addEventListener('memberDeleted', handleStorageChange)
+        window.addEventListener('memberUpdated', handleStorageChange)
         
         return () => {
             window.removeEventListener('storage', handleStorageChange)
             window.removeEventListener('delegationAdded', handleStorageChange)
             window.removeEventListener('delegationDeleted', handleStorageChange)
             window.removeEventListener('delegationUpdated', handleStorageChange)
+            window.removeEventListener('memberAdded', handleStorageChange)
+            window.removeEventListener('memberDeleted', handleStorageChange)
+            window.removeEventListener('memberUpdated', handleStorageChange)
         }
     }, [])
     

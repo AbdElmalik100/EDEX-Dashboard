@@ -27,30 +27,18 @@ const EventPage = () => {
                     const events = JSON.parse(savedEvents)
                     // البحث عن الحدث بالاسم
                     const event = events.find(e => {
-                        // تحويل اسم الحدث إلى مسار مناسب
+                        // استخدام الاسم الإنجليزي إذا كان متوفراً، وإلا استخدم الاسم العربي
                         let eventPath = ''
-                        switch(e.name) {
-                            case 'ايديكس':
-                                eventPath = 'edex'
-                                break
-                            case 'الفروسية':
-                                eventPath = 'equestrianism'
-                                break
-                            case 'النجم الساطع':
-                                eventPath = 'brightstar'
-                                break
-                            default:
-                                // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
-                                if (e.englishName) {
-                                    eventPath = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
-                                } else {
-                                    eventPath = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
-                                    // معالجة التاء المربوطة
-                                    if (eventPath.endsWith('ة')) {
-                                        eventPath = eventPath.slice(0, -1) + 'ه'
-                                    }
-                                }
+                        if (e.englishName) {
+                            eventPath = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                        } else {
+                            eventPath = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                            // معالجة التاء المربوطة
+                            if (eventPath.endsWith('ة')) {
+                                eventPath = eventPath.slice(0, -1) + 'ه'
+                            }
                         }
+                        
                         // معالجة التاء المربوطة في المقارنة
                         let normalizedEventName = eventName
                         if (normalizedEventName.endsWith('ة')) {

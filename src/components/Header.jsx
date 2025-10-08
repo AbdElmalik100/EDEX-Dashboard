@@ -56,30 +56,6 @@ const Header = () => {
         switch (navigation.pathname) {
         case '/':
             return "لوحة التحكم"
-        case '/edex':
-            // البحث عن حدث ايديكس في localStorage
-            const edexEvent = events.find(event => 
-                event.id === 1 || 
-                event.name === 'ايديكس' || 
-                event.englishName === 'edex'
-            )
-            return edexEvent ? edexEvent.name : "ايديكس"
-        case '/equestrianism':
-            // البحث عن حدث الفروسية في localStorage
-            const equestrianismEvent = events.find(event => 
-                event.id === 2 || 
-                event.name === 'الفروسية' || 
-                event.englishName === 'equestrianism'
-            )
-            return equestrianismEvent ? equestrianismEvent.name : "الفروسية"
-        case '/brightstar':
-            // البحث عن حدث النجم الساطع في localStorage
-            const brightstarEvent = events.find(event => 
-                event.id === 3 || 
-                event.name === 'النجم الساطع' || 
-                event.englishName === 'brightstar'
-            )
-            return brightstarEvent ? brightstarEvent.name : "النجم الساطع"
         case '/events-management':
             return "إدارة الأحداث"
         case '/all-members':
@@ -94,28 +70,16 @@ const Header = () => {
             
             // البحث في الأحداث المحملة
             const event = events.find(e => {
+                // استخدام الاسم الإنجليزي إذا كان متوفراً، وإلا استخدم الاسم العربي
                 let eventPathFromName = ''
-                switch(e.name) {
-                    case 'ايديكس':
-                        eventPathFromName = 'edex'
-                        break
-                    case 'الفروسية':
-                        eventPathFromName = 'equestrianism'
-                        break
-                    case 'النجم الساطع':
-                        eventPathFromName = 'brightstar'
-                        break
-                    default:
-                        // استخدام الاسم الإنجليزي إذا كان متوفراً، وإلا استخدم الاسم العربي
-                        if (e.englishName) {
-                            eventPathFromName = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
-                        } else {
-                            eventPathFromName = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
-                            // معالجة التاء المربوطة
-                            if (eventPathFromName.endsWith('ة')) {
-                                eventPathFromName = eventPathFromName.slice(0, -1) + 'ه'
-                            }
-                        }
+                if (e.englishName) {
+                    eventPathFromName = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                } else {
+                    eventPathFromName = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                    // معالجة التاء المربوطة
+                    if (eventPathFromName.endsWith('ة')) {
+                        eventPathFromName = eventPathFromName.slice(0, -1) + 'ه'
+                    }
                 }
                 
                 // معالجة التاء المربوطة في المقارنة

@@ -194,7 +194,7 @@ const AllMembers = () => {
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
     const [columnVisibility, setColumnVisibility] = useState({
-        job: false, // إخفاء عمود الوظيفة المدنية افتراضياً
+        job: false, // إخفاء عمود الوظيفة افتراضياً
         equivalentRole: true // إظهار عمود المنصب المعادل افتراضياً
     })
     const [rowSelection, setRowSelection] = useState({})
@@ -264,7 +264,7 @@ const AllMembers = () => {
             },
             {
                 accessorKey: "role",
-                header: () => <div className="text-center">الوظيفة المدنية</div>,
+                header: () => <div className="text-center">الوظيفة</div>,
                 cell: ({ row }) => (
                     <div className="text-center">
                         <span className="text-gray-700">{row.getValue("role")}</span>

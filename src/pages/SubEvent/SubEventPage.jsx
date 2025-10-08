@@ -43,23 +43,15 @@ const SubEventPage = () => {
                     
                     // إذا كان الحدث الرئيسي مختلف عن المحدد في الرابط، أعد التوجيه
                     let correctEventPath = ''
-                    switch(foundMainEvent.name) {
-                        case 'ايديكس':
-                            correctEventPath = 'edex'
-                            break
-                        case 'الفروسية':
-                            correctEventPath = 'equestrianism'
-                            break
-                        case 'النجم الساطع':
-                            correctEventPath = 'brightstar'
-                            break
-                        default:
-                            // للأحداث الجديدة، استخدم الاسم الإنجليزي إذا كان متوفراً
-                            if (foundMainEvent.englishName) {
-                                correctEventPath = foundMainEvent.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
-                            } else {
-                                correctEventPath = foundMainEvent.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
-                            }
+                    // استخدام الاسم الإنجليزي إذا كان متوفراً
+                    if (foundMainEvent.englishName) {
+                        correctEventPath = foundMainEvent.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                    } else {
+                        correctEventPath = foundMainEvent.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                        // معالجة التاء المربوطة
+                        if (correctEventPath.endsWith('ة')) {
+                            correctEventPath = correctEventPath.slice(0, -1) + 'ه'
+                        }
                     }
                     
                     if (correctEventPath !== eventName) {
@@ -70,28 +62,20 @@ const SubEventPage = () => {
                     // إذا لم يتم العثور على الحدث الفرعي، جرب البحث في الحدث الرئيسي المحدد
                     let mainEvent = null
                     
-                    switch(eventName) {
-                        case 'edex':
-                            mainEvent = events.find(e => e.name === 'ايديكس')
-                            break
-                        case 'equestrianism':
-                            mainEvent = events.find(e => e.name === 'الفروسية')
-                            break
-                        case 'brightstar':
-                            mainEvent = events.find(e => e.name === 'النجم الساطع')
-                            break
-                        default:
-                            // للأحداث الجديدة
-                            mainEvent = events.find(e => {
-                                let path = ''
-                                if (e.englishName) {
-                                    path = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
-                                } else {
-                                    path = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
-                                }
-                                return path === eventName
-                            })
-                    }
+                    // البحث في جميع الأحداث بناءً على المسار
+                    mainEvent = events.find(e => {
+                        let path = ''
+                        if (e.englishName) {
+                            path = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                        } else {
+                            path = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                            // معالجة التاء المربوطة
+                            if (path.endsWith('ة')) {
+                                path = path.slice(0, -1) + 'ه'
+                            }
+                        }
+                        return path === eventName
+                    })
                     
                     if (mainEvent) {
                         setMainEventData(mainEvent)

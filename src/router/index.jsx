@@ -3,10 +3,7 @@ import Dashboard from '../layouts/Dashboard'
 import Auth from '../layouts/Auth'
 import Home from '../pages/Home'
 import Login from '../pages/Auth/Login'
-import Edex from '../pages/EDEX/Edex'
 import DelegationMembers from '../pages/EDEX/EdexMembers'
-import Equestrianism from '../pages/Equestrianism/Equestrianism'
-import Brightstar from '../pages/Brightstar/Brightstar'
 import AllMembers from '../pages/AllMembers'
 import EventsManagement from '../pages/Events/EventsManagement'
 import EventPage from '../pages/EventPage/EventPage'
@@ -21,9 +18,6 @@ const AppRouter = () => {
             </Route>
             <Route path='/' element={<Dashboard />}>
                 <Route index element={<Home />} />
-                <Route path='/edex' element={<Edex />} />
-                <Route path='/equestrianism' element={<Equestrianism />} />
-                <Route path='/brightstar' element={<Brightstar />} />
                 <Route path='/all-members' element={<AllMembers />} />
                 <Route path='/events-management' element={<EventsManagement />} />
                 <Route path='/:eventName/:subEventId/:delegationId' element={<DelegationMembers />} />

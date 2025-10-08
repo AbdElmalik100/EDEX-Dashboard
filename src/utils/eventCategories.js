@@ -44,42 +44,8 @@ export const availableEmojis = [
   { icon: "material-symbols:shield", name: "مؤتمر أمني", category: "عسكري" }
 ];
 
-// الفئات الافتراضية
-export const defaultCategories = [
-  {
-    id: "edex",
-    name: "ايديكس",
-    icon: "fa-solid:fighter-jet",
-    events: [
-      {
-        id: "edex-2025",
-        name: "ايديكس 2025",
-        date: new Date().toLocaleString(),
-        delegationCount: 132,
-        membersCount: 361
-      },
-      {
-        id: "edex-2024", 
-        name: "ايديكس 2024",
-        date: new Date().toLocaleString(),
-        delegationCount: 148,
-        membersCount: 256
-      }
-    ]
-  },
-  {
-    id: "equestrianism",
-    name: "الفروسية",
-    icon: "fa7-solid:horse-head",
-    events: []
-  },
-  {
-    id: "brightstar",
-    name: "النجم الساطع",
-    icon: "material-symbols:star-shine-rounded",
-    events: []
-  }
-];
+// الفئات الافتراضية - فارغة للبداية
+export const defaultCategories = [];
 
 // الحصول على الفئات من localStorage
 export const getEventCategories = () => {

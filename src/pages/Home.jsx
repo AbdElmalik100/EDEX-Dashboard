@@ -133,10 +133,7 @@ const Home = () => {
                                 className="box bg-white w-full border border-neutral-300 rounded-xl flex flex-col transition-all ease-out hover:shadow cursor-pointer hover:border-primary-400"
                                 onClick={() => {
                                     // التنقل إلى صفحة وفود الحدث الفرعي
-                                    const mainEventPath = subEvent.mainEventName === 'ايديكس' ? 'edex' :
-                                                       subEvent.mainEventName === 'الفروسية' ? 'equestrianism' :
-                                                       subEvent.mainEventName === 'النجم الساطع' ? 'brightstar' :
-                                                       subEvent.mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                    const mainEventPath = subEvent.mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
                                     navigate(`/${mainEventPath}/${subEvent.id}`)
                                 }}
                             >
@@ -185,9 +182,19 @@ const Home = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-8 text-neutral-500">
-                        <Icon icon="material-symbols:event" fontSize={48} className="mx-auto mb-4" />
-                        <p>لا توجد أحداث فرعية</p>
+                    <div className="text-center py-12 text-neutral-500">
+                        <Icon icon="material-symbols:event" fontSize={64} className="mx-auto mb-6 text-neutral-400" />
+                        <h3 className="text-xl font-semibold mb-2 text-neutral-700">لا توجد أحداث</h3>
+                        <p className="text-neutral-500 mb-6">
+                            لم يتم إنشاء أي أحداث بعد. ابدأ بإنشاء أول حدث لك من خلال صفحة إدارة الأحداث.
+                        </p>
+                        <button 
+                            onClick={() => navigate('/events-management')}
+                            className="bg-primary-400 hover:bg-primary-500 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg"
+                        >
+                            <Icon icon="material-symbols:add" className="inline-block ml-2" />
+                            إنشاء حدث جديد
+                        </button>
                     </div>
                 )}
             </div>

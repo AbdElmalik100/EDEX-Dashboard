@@ -33,6 +33,7 @@ const EditMember = ({ member, children }) => {
     const [newPosition, setNewPosition] = useState("")
     const [availablePositions, setAvailablePositions] = useState(militaryPositions)
     const [searchTerm, setSearchTerm] = useState("")
+    const [deleteItem, setDeleteItem] = useState(null)
 
     const validationSchema = yup.object({
         rank: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
@@ -60,6 +61,13 @@ const EditMember = ({ member, children }) => {
         if (newPosition.trim() && !availablePositions.includes(newPosition.trim())) {
             const updatedPositions = [...availablePositions, newPosition.trim()].sort((a, b) => a.localeCompare(b, 'ar'))
             setAvailablePositions(updatedPositions)
+            
+            // حفظ في localStorage
+            localStorage.setItem('militaryPositions', JSON.stringify(updatedPositions))
+            
+            // إرسال custom event لتحديث الفورمات الأخرى
+            window.dispatchEvent(new CustomEvent('positionsUpdated'))
+            
             setSelectedEquivalentPosition(newPosition.trim())
             setValue('equivalentRole', newPosition.trim())
             setNewPosition("")
@@ -70,6 +78,34 @@ const EditMember = ({ member, children }) => {
         } else {
             toast.error("يرجى إدخال اسم المنصب")
         }
+    }
+
+    // دالة حذف المنصب العسكري
+    const handleDeletePosition = (position) => {
+        setDeleteItem({
+            type: 'position',
+            name: position,
+            onDelete: () => {
+                // حذف من قائمة المناصب
+                const updatedPositions = availablePositions.filter(p => p !== position)
+                setAvailablePositions(updatedPositions)
+                
+                // حفظ في localStorage
+                localStorage.setItem('militaryPositions', JSON.stringify(updatedPositions))
+                
+                // إرسال custom event لتحديث الفورمات الأخرى
+                window.dispatchEvent(new CustomEvent('positionsUpdated'))
+                
+                // إذا كان المنصب المحذوف هو المحدد حالياً، امسح التحديد
+                if (selectedEquivalentPosition === position) {
+                    setSelectedEquivalentPosition("")
+                    setValue('equivalentRole', "")
+                }
+                
+                toast.success("تم حذف المنصب العسكري بنجاح")
+                setDeleteItem(null)
+            }
+        })
     }
 
     // تصفية المناصب حسب البحث
@@ -140,6 +176,79 @@ const EditMember = ({ member, children }) => {
         }
     }, [open, reset])
 
+    // تحميل المناصب العسكرية من localStorage في البداية
+    useEffect(() => {
+        const savedPositions = localStorage.getItem('militaryPositions')
+        if (savedPositions) {
+            try {
+                const positions = JSON.parse(savedPositions)
+                setAvailablePositions(positions)
+            } catch (error) {
+                console.error('خطأ في تحليل المناصب العسكرية:', error)
+                // استخدام المناصب الافتراضية في حالة الخطأ
+                setAvailablePositions(militaryPositions)
+            }
+        } else {
+            // إذا لم توجد مناصب محفوظة، استخدم الافتراضية
+            setAvailablePositions(militaryPositions)
+        }
+    }, [])
+
+    // الاستماع لتحديث المناصب العسكرية من الفورمات الأخرى
+    useEffect(() => {
+        const handlePositionsUpdated = () => {
+            const savedPositions = localStorage.getItem('militaryPositions')
+            if (savedPositions) {
+                try {
+                    const positions = JSON.parse(savedPositions)
+                    setAvailablePositions(positions)
+                } catch (error) {
+                    console.error('خطأ في تحليل المناصب العسكرية:', error)
+                }
+            }
+        }
+
+        // الاستماع لتغييرات localStorage مباشرة
+        const handleStorageChange = (e) => {
+            if (e.key === 'militaryPositions' && e.newValue) {
+                try {
+                    const positions = JSON.parse(e.newValue)
+                    setAvailablePositions(positions)
+                } catch (error) {
+                    console.error('خطأ في تحليل المناصب العسكرية:', error)
+                }
+            }
+        }
+
+        // الاستماع لتحديث الأعضاء (لإعادة تحميل البيانات عند الحاجة)
+        const handleMemberUpdate = () => {
+            // إعادة تحميل البيانات من localStorage
+            const savedPositions = localStorage.getItem('militaryPositions')
+            if (savedPositions) {
+                try {
+                    const positions = JSON.parse(savedPositions)
+                    setAvailablePositions(positions)
+                } catch (error) {
+                    console.error('خطأ في تحليل المناصب العسكرية:', error)
+                }
+            }
+        }
+
+        window.addEventListener('positionsUpdated', handlePositionsUpdated)
+        window.addEventListener('storage', handleStorageChange)
+        window.addEventListener('memberAdded', handleMemberUpdate)
+        window.addEventListener('memberDeleted', handleMemberUpdate)
+        window.addEventListener('memberUpdated', handleMemberUpdate)
+        
+        return () => {
+            window.removeEventListener('positionsUpdated', handlePositionsUpdated)
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('memberAdded', handleMemberUpdate)
+            window.removeEventListener('memberDeleted', handleMemberUpdate)
+            window.removeEventListener('memberUpdated', handleMemberUpdate)
+        }
+    }, [])
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -167,7 +276,7 @@ const EditMember = ({ member, children }) => {
                             </div>
                         </div>
                         <div className="grid gap-3 w-full">
-                            <Label htmlFor="role">الوظيفة المدنية</Label>
+                            <Label htmlFor="role">الوظيفة</Label>
                             <input 
                                 type="text" 
                                 id="role" 
@@ -242,9 +351,23 @@ const EditMember = ({ member, children }) => {
                                     <div className="max-h-60 overflow-y-auto">
                                         {filteredPositions.length > 0 ? (
                                             filteredPositions.map((position, index) => (
-                                                <SelectItem key={index} value={position} className="text-right" dir="rtl">
-                                                    {position}
-                                                </SelectItem>
+                                                <div key={index} className="flex items-center justify-between p-2 hover:bg-neutral-100">
+                                                    <SelectItem value={position} className="text-right flex-1" dir="rtl">
+                                                        {position}
+                                                    </SelectItem>
+                                                    <button
+                                                        type="button"
+                                                        onPointerDown={(e) => {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            handleDeletePosition(position)
+                                                        }}
+                                                        className="text-neutral-500 hover:text-neutral-700 p-1 rounded flex-shrink-0"
+                                                        title="حذف المنصب العسكري"
+                                                    >
+                                                        <Icon icon="material-symbols:close" fontSize={16} />
+                                                    </button>
+                                                </div>
                                             ))
                                         ) : (
                                             <div className="p-2 text-sm text-neutral-500 text-center">
@@ -276,6 +399,36 @@ const EditMember = ({ member, children }) => {
                     </DialogFooter>
                 </form>
             </DialogContent>
+            
+            {/* نافذة تأكيد الحذف */}
+            {deleteItem && (
+                <Dialog open={!!deleteItem} onOpenChange={() => setDeleteItem(null)}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>تأكيد الحذف</DialogTitle>
+                            <DialogDescription>
+                                هل أنت متأكد من حذف "{deleteItem.name}"؟ هذا الإجراء لا يمكن التراجع عنه.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setDeleteItem(null)}
+                                className="cursor-pointer"
+                            >
+                                إلغاء
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                onClick={deleteItem.onDelete}
+                                className="cursor-pointer"
+                            >
+                                حذف
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </Dialog>
     )
 }

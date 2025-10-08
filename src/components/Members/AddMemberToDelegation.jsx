@@ -42,6 +42,7 @@ const AddMemberToDelegation = () => {
     const [availablePositions, setAvailablePositions] = useState(militaryPositions)
     const [searchTerm, setSearchTerm] = useState("")
     const [memberCountInfo, setMemberCountInfo] = useState({ current: 0, max: 0 })
+    const [deleteItem, setDeleteItem] = useState(null)
 
     const validationSchema = yup.object({
         rank: yup.string().required("هذا الحقل لا يمكن ان يكون فارغا"),
@@ -75,6 +76,13 @@ const AddMemberToDelegation = () => {
         if (newPosition.trim() && !availablePositions.includes(newPosition.trim())) {
             const updatedPositions = [...availablePositions, newPosition.trim()].sort((a, b) => a.localeCompare(b, 'ar'))
             setAvailablePositions(updatedPositions)
+            
+            // حفظ في localStorage
+            localStorage.setItem('militaryPositions', JSON.stringify(updatedPositions))
+            
+            // إرسال custom event لتحديث الفورمات الأخرى
+            window.dispatchEvent(new CustomEvent('positionsUpdated'))
+            
             setSelectedEquivalentPosition(newPosition.trim())
             setValue('equivalentRole', newPosition.trim())
             setNewPosition("")
@@ -85,6 +93,34 @@ const AddMemberToDelegation = () => {
         } else {
             toast.error("يرجى إدخال اسم المنصب")
         }
+    }
+
+    // دالة حذف المنصب العسكري
+    const handleDeletePosition = (position) => {
+        setDeleteItem({
+            type: 'position',
+            name: position,
+            onDelete: () => {
+                // حذف من قائمة المناصب
+                const updatedPositions = availablePositions.filter(p => p !== position)
+                setAvailablePositions(updatedPositions)
+                
+                // حفظ في localStorage
+                localStorage.setItem('militaryPositions', JSON.stringify(updatedPositions))
+                
+                // إرسال custom event لتحديث الفورمات الأخرى
+                window.dispatchEvent(new CustomEvent('positionsUpdated'))
+                
+                // إذا كان المنصب المحذوف هو المحدد حالياً، امسح التحديد
+                if (selectedEquivalentPosition === position) {
+                    setSelectedEquivalentPosition("")
+                    setValue('equivalentRole', "")
+                }
+                
+                toast.success("تم حذف المنصب العسكري بنجاح")
+                setDeleteItem(null)
+            }
+        })
     }
 
     // تصفية المناصب حسب البحث
@@ -197,7 +233,7 @@ const AddMemberToDelegation = () => {
             id: `mem_${Date.now()}`,
             rank: data.rank,
             name: data.name,
-            role: data.role, // الوظيفة المدنية
+            role: data.role, // الوظيفة
             equivalentRole: data.equivalentRole, // المنصب العسكري المعادل
             job: data.equivalentRole, // للتوافق مع النظام الحالي
             memberStatus: "not_departed",
@@ -219,6 +255,10 @@ const AddMemberToDelegation = () => {
         // حفظ في localStorage
         try {
             localStorage.setItem('members', JSON.stringify(updatedMembers))
+            
+            // إرسال events فوراً بعد الحفظ
+            window.dispatchEvent(new CustomEvent('memberAdded'))
+            window.dispatchEvent(new CustomEvent('localStorageUpdated'))
 
         } catch (error) {
             console.error('خطأ في حفظ البيانات:', error)
@@ -312,17 +352,6 @@ const AddMemberToDelegation = () => {
                 })
             }
             
-            // إرسال event لتحديث صفحة الأعضاء
-            window.dispatchEvent(new CustomEvent('memberAdded'))
-            
-            // إرسال event إضافي لتحديث localStorage
-            window.dispatchEvent(new CustomEvent('localStorageUpdated'))
-            
-            // تحديث مباشر للصفحة إذا كانت مفتوحة
-            if (window.location.pathname.includes('/all-members')) {
-                window.location.reload()
-            }
-            
             reset()
             setSelectedEquivalentPosition("")
             setSelectedPosition("")
@@ -388,10 +417,52 @@ const AddMemberToDelegation = () => {
         }
     }, [open, delegationId])
 
+    // تحميل المناصب العسكرية من localStorage في البداية
+    useEffect(() => {
+        const savedPositions = localStorage.getItem('militaryPositions')
+        if (savedPositions) {
+            try {
+                const positions = JSON.parse(savedPositions)
+                setAvailablePositions(positions)
+            } catch (error) {
+                console.error('خطأ في تحليل المناصب العسكرية:', error)
+                // استخدام المناصب الافتراضية في حالة الخطأ
+                setAvailablePositions(militaryPositions)
+            }
+        } else {
+            // إذا لم توجد مناصب محفوظة، استخدم الافتراضية
+            setAvailablePositions(militaryPositions)
+        }
+    }, [])
+
     // الاستماع لتغييرات الأعضاء (حذف، إضافة، تحديث)
     useEffect(() => {
         const handleMemberChange = () => {
             updateMemberCountInfo()
+        }
+
+        const handlePositionsUpdated = () => {
+            const savedPositions = localStorage.getItem('militaryPositions')
+            if (savedPositions) {
+                try {
+                    const positions = JSON.parse(savedPositions)
+                    setAvailablePositions(positions)
+                } catch (error) {
+                    console.error('خطأ في تحليل المناصب العسكرية:', error)
+                }
+            }
+        }
+
+        // الاستماع لتغييرات localStorage مباشرة
+        const handleStorageChange = (e) => {
+            if (e.key === 'militaryPositions' && e.newValue) {
+                try {
+                    const positions = JSON.parse(e.newValue)
+                    setAvailablePositions(positions)
+                } catch (error) {
+                    console.error('خطأ في تحليل المناصب العسكرية:', error)
+                }
+            }
         }
 
         // إضافة event listeners للتغييرات
@@ -399,6 +470,8 @@ const AddMemberToDelegation = () => {
         window.addEventListener('memberAdded', handleMemberChange)
         window.addEventListener('memberUpdated', handleMemberChange)
         window.addEventListener('localStorageUpdated', handleMemberChange)
+        window.addEventListener('positionsUpdated', handlePositionsUpdated)
+        window.addEventListener('storage', handleStorageChange)
 
         // تحديث العداد عند تحميل المكون
         updateMemberCountInfo()
@@ -408,6 +481,8 @@ const AddMemberToDelegation = () => {
             window.removeEventListener('memberAdded', handleMemberChange)
             window.removeEventListener('memberUpdated', handleMemberChange)
             window.removeEventListener('localStorageUpdated', handleMemberChange)
+            window.removeEventListener('positionsUpdated', handlePositionsUpdated)
+            window.removeEventListener('storage', handleStorageChange)
         }
     }, [delegationId])
 
@@ -476,7 +551,7 @@ const AddMemberToDelegation = () => {
                             </div>
                         </div>
                         <div className="grid gap-3 w-full">
-                            <Label htmlFor="role">الوظيفة المدنية</Label>
+                            <Label htmlFor="role">الوظيفة</Label>
                             <input 
                                 type="text" 
                                 id="role" 
@@ -551,9 +626,23 @@ const AddMemberToDelegation = () => {
                                     <div className="max-h-60 overflow-y-auto">
                                         {filteredPositions.length > 0 ? (
                                             filteredPositions.map((position, index) => (
-                                                <SelectItem key={index} value={position} className="text-right" dir="rtl">
-                                                    {position}
-                                                </SelectItem>
+                                                <div key={index} className="flex items-center justify-between p-2 hover:bg-neutral-100">
+                                                    <SelectItem value={position} className="text-right flex-1" dir="rtl">
+                                                        {position}
+                                                    </SelectItem>
+                                                    <button
+                                                        type="button"
+                                                        onPointerDown={(e) => {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            handleDeletePosition(position)
+                                                        }}
+                                                        className="text-neutral-500 hover:text-neutral-700 p-1 rounded flex-shrink-0"
+                                                        title="حذف المنصب العسكري"
+                                                    >
+                                                        <Icon icon="material-symbols:close" fontSize={16} />
+                                                    </button>
+                                                </div>
                                             ))
                                         ) : (
                                             <div className="p-2 text-sm text-neutral-500 text-center">
@@ -585,6 +674,36 @@ const AddMemberToDelegation = () => {
                     </DialogFooter>
                 </form>
             </DialogContent>
+            
+            {/* نافذة تأكيد الحذف */}
+            {deleteItem && (
+                <Dialog open={!!deleteItem} onOpenChange={() => setDeleteItem(null)}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>تأكيد الحذف</DialogTitle>
+                            <DialogDescription>
+                                هل أنت متأكد من حذف "{deleteItem.name}"؟ هذا الإجراء لا يمكن التراجع عنه.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setDeleteItem(null)}
+                                className="cursor-pointer"
+                            >
+                                إلغاء
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                onClick={deleteItem.onDelete}
+                                className="cursor-pointer"
+                            >
+                                حذف
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </Dialog>
     )
 }
