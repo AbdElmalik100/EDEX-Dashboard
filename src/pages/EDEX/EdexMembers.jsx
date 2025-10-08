@@ -227,7 +227,7 @@ const DelegationMembers = () => {
             )}
             
             
-            <Members members={delegationMembers} showDelegationInfo={false} />
+            <Members members={delegationMembers} showDelegationInfo={true} />
         </div>
     )
 }
