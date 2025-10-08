@@ -5,7 +5,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -78,6 +78,43 @@ export const columns = [
         }
     },
     {
+        accessorKey: "departureDate",
+        header: ({ column }) => {
+            return (
+                <div className="text-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="h-auto p-0 font-medium"
+                    >
+                        تاريخ المغادرة
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+            )
+        },
+        cell: ({ row }) => {
+            const departureDate = row.getValue("departureDate")
+            return (
+                <div className="text-center">
+                    {departureDate ? (
+                        <span className="text-sm text-neutral-600">
+                            {departureDate}
+                        </span>
+                    ) : (
+                        <span className="text-sm text-neutral-400">-</span>
+                    )}
+                </div>
+            )
+        },
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue) return true
+            const departureDate = row.getValue(columnId)
+            if (!departureDate) return false
+            return departureDate.toLowerCase().includes(filterValue.toLowerCase())
+        },
+    },
+    {
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
@@ -139,7 +176,7 @@ const Members = ({ members: data = [], showDelegationInfo = false }) => {
     return (
         <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
             <MembersTableToolbar table={table} data={data} showDelegationInfo={showDelegationInfo} />
-            <DataTable table={table} columns={columns} clickableRow={true} />
+            <DataTable table={table} columns={columns} clickableRow={false} />
         </div>
     )
 }

@@ -59,13 +59,11 @@ const DelegationMembers = () => {
                     
                     setDelegationMembers(updatedMembers)
 
-
                 } catch (error) {
                     console.error('خطأ في تحليل بيانات الأعضاء:', error)
                     setDelegationMembers([])
                 }
             } else {
-
                 setDelegationMembers([])
             }
             
@@ -157,6 +155,10 @@ const DelegationMembers = () => {
                                     <p className="font-medium">{selectedDelegation.arrivalInfo?.arrivalFlightNumber}</p>
                                 </div>
                                 <div>
+                                    <span className="text-muted-foreground">قادمة من:</span>
+                                    <p className="font-medium">{selectedDelegation.arrivalInfo?.arrivalOrigin}</p>
+                                </div>
+                                <div>
                                     <span className="text-muted-foreground">تاريخ الوصول:</span>
                                     <p className="font-medium">{selectedDelegation.arrivalInfo?.arrivalDate}</p>
                                 </div>
@@ -224,7 +226,8 @@ const DelegationMembers = () => {
                 />
             )}
             
-            <Members members={delegationMembers} showDelegationInfo={true} />
+            
+            <Members members={delegationMembers} showDelegationInfo={false} />
         </div>
     )
 }

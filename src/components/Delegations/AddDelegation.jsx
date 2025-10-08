@@ -54,6 +54,30 @@ const AddDelegation = ({ subEventId }) => {
     })
     const [airportSearchTerm, setAirportSearchTerm] = useState("")
     
+    // شركات الطيران
+    const [selectedAirline, setSelectedAirline] = useState("")
+    const [showAddAirline, setShowAddAirline] = useState(false)
+    const [newAirline, setNewAirline] = useState("")
+    const [availableAirlines, setAvailableAirlines] = useState(() => {
+        const savedAirlines = localStorage.getItem('airlines')
+        if (savedAirlines) {
+            return JSON.parse(savedAirlines)
+        }
+        return [
+            "مصر للطيران", "الخطوط الجوية السعودية", "طيران الإمارات", "الخطوط الجوية القطرية",
+            "الخطوط الجوية الكويتية", "الخطوط الجوية البحرينية", "الخطوط الجوية العمانية",
+            "الخطوط الجوية الأردنية", "الخطوط الجوية اللبنانية", "الخطوط الجوية السورية",
+            "الخطوط الجوية العراقية", "الخطوط الجوية الليبية", "الخطوط الجوية الجزائرية",
+            "الخطوط الجوية المغربية", "الخطوط الجوية التونسية", "الخطوط الجوية السودانية",
+            "الخطوط الجوية اليمنية", "الخطوط الجوية الصومالية", "الخطوط الجوية الموريتانية",
+            "الخطوط الجوية الجيبوتية", "الخطوط الجوية الكينية", "الخطوط الجوية الإثيوبية",
+            "الخطوط الجوية التركية", "الخطوط الجوية الألمانية", "الخطوط الجوية الفرنسية",
+            "الخطوط الجوية البريطانية", "الخطوط الجوية الإيطالية", "الخطوط الجوية الإسبانية",
+            "الخطوط الجوية الأمريكية", "الخطوط الجوية الكندية", "الخطوط الجوية الأسترالية"
+        ]
+    })
+    const [airlineSearchTerm, setAirlineSearchTerm] = useState("")
+
     // قادمة من
     const [selectedOrigin, setSelectedOrigin] = useState("")
     const [showAddOrigin, setShowAddOrigin] = useState(false)
@@ -90,6 +114,12 @@ const AddDelegation = ({ subEventId }) => {
                 setAvailableAirports(JSON.parse(savedAirports))
             }
             
+            // تحديث شركات الطيران
+            const savedAirlines = localStorage.getItem('airlines')
+            if (savedAirlines) {
+                setAvailableAirlines(JSON.parse(savedAirlines))
+            }
+            
             // تحديث المدن
             const savedOrigins = localStorage.getItem('origins')
             if (savedOrigins) {
@@ -103,12 +133,14 @@ const AddDelegation = ({ subEventId }) => {
         // الاستماع للـ custom events (من نفس الـ tab)
         window.addEventListener('nationalitiesUpdated', handleStorageChange)
         window.addEventListener('airportsUpdated', handleStorageChange)
+        window.addEventListener('airlinesUpdated', handleStorageChange)
         window.addEventListener('originsUpdated', handleStorageChange)
         
         return () => {
             window.removeEventListener('storage', handleStorageChange)
             window.removeEventListener('nationalitiesUpdated', handleStorageChange)
             window.removeEventListener('airportsUpdated', handleStorageChange)
+            window.removeEventListener('airlinesUpdated', handleStorageChange)
             window.removeEventListener('originsUpdated', handleStorageChange)
         }
     }, [])
@@ -165,6 +197,15 @@ const AddDelegation = ({ subEventId }) => {
             setShowAddAirport(true)
         } else {
             setValue('arrivalHall', value)
+        }
+    }
+
+    const handleAirlineChange = (value) => {
+        setSelectedAirline(value)
+        if (value === "add_new") {
+            setShowAddAirline(true)
+        } else {
+            setValue('arrivalAirline', value)
         }
     }
 
@@ -236,6 +277,26 @@ const AddDelegation = ({ subEventId }) => {
         }
     }
 
+    const handleAddNewAirline = () => {
+        if (newAirline.trim() && !availableAirlines.includes(newAirline.trim())) {
+            const updatedAirlines = [...availableAirlines, newAirline.trim()].sort((a, b) => a.localeCompare(b, 'ar'))
+            setAvailableAirlines(updatedAirlines)
+            localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
+            // إرسال custom event لتحديث الفورمات الأخرى
+            window.dispatchEvent(new CustomEvent('airlinesUpdated'))
+            setSelectedAirline(newAirline.trim())
+            setValue('arrivalAirline', newAirline.trim())
+            setNewAirline("")
+            setShowAddAirline(false)
+            setAirlineSearchTerm("")
+            toast.success("تم إضافة شركة الطيران الجديدة بنجاح")
+        } else if (availableAirlines.includes(newAirline.trim())) {
+            toast.error("هذه شركة الطيران موجودة بالفعل")
+        } else {
+            toast.error("يرجى إدخال اسم شركة الطيران")
+        }
+    }
+
     // تصفية الجنسيات حسب البحث
     const filteredNationalities = availableNationalities.filter(nationality =>
         nationality.toLowerCase().includes(searchTerm.toLowerCase())
@@ -246,6 +307,11 @@ const AddDelegation = ({ subEventId }) => {
         airport.toLowerCase().includes(airportSearchTerm.toLowerCase())
     )
 
+    // تصفية شركات الطيران حسب البحث
+    const filteredAirlines = availableAirlines.filter(airline =>
+        airline.toLowerCase().includes(airlineSearchTerm.toLowerCase())
+    )
+
     // تصفية المدن حسب البحث
     const filteredOrigins = availableOrigins.filter(origin =>
         origin.toLowerCase().includes(originSearchTerm.toLowerCase())
@@ -254,7 +320,7 @@ const AddDelegation = ({ subEventId }) => {
     const onSubmit = handleSubmit((data) => {
         setLoading(true)
         
-        // التحقق من الجنسية والمطار وقادمة من
+        // التحقق من الجنسية والمطار وشركة الطيران وقادمة من
         if (!selectedNationality) {
             toast.error("يرجى اختيار الجنسية")
             setLoading(false)
@@ -263,6 +329,12 @@ const AddDelegation = ({ subEventId }) => {
         
         if (!selectedAirport) {
             toast.error("يرجى اختيار المطار")
+            setLoading(false)
+            return
+        }
+        
+        if (!selectedAirline) {
+            toast.error("يرجى اختيار شركة الطيران")
             setLoading(false)
             return
         }
@@ -287,7 +359,7 @@ const AddDelegation = ({ subEventId }) => {
                 delegationStatus: 'not_departed', // إضافة حالة افتراضية
                 arrivalInfo: {
                     arrivalHall: selectedAirport,
-                    arrivalAirline: data.arrivalAirline,
+                    arrivalAirline: selectedAirline,
                     arrivalFlightNumber: data.arrivalFlightNumber,
                     arrivalOrigin: selectedOrigin,
                     arrivalDate: data.arrivalDate,
@@ -315,8 +387,12 @@ const AddDelegation = ({ subEventId }) => {
             reset()
             setSelectedNationality("")
             setSelectedAirport("")
+            setSelectedAirline("")
+            setSelectedOrigin("")
             setSearchTerm("")
             setAirportSearchTerm("")
+            setAirlineSearchTerm("")
+            setOriginSearchTerm("")
             setLoading(false)
             setOpen(false)
         }, 1000)
@@ -331,12 +407,20 @@ const AddDelegation = ({ subEventId }) => {
         reset()
         setSelectedNationality("")
         setSelectedAirport("")
+        setSelectedAirline("")
+        setSelectedOrigin("")
         setSearchTerm("")
         setAirportSearchTerm("")
+        setAirlineSearchTerm("")
+        setOriginSearchTerm("")
         setShowAddNationality(false)
         setShowAddAirport(false)
+        setShowAddAirline(false)
+        setShowAddOrigin(false)
         setNewNationality("")
         setNewAirport("")
+        setNewAirline("")
+        setNewOrigin("")
     }, [open])
 
     return (
@@ -699,18 +783,76 @@ const AddDelegation = ({ subEventId }) => {
                                         <Icon icon="material-symbols:airline" fontSize={16} className="text-primary-500" />
                                         شركة الطيران
                                     </Label>
-                                    <input 
-                                        type="text" 
-                                        id="arrivalAirline" 
-                                        name="arrivalAirline" 
-                                        placeholder="أدخل شركة الطيران" 
-                                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200 bg-neutral-50 focus:bg-white"
-                                        {...register('arrivalAirline')} 
-                                    />
+                                    <Select value={selectedAirline} onValueChange={handleAirlineChange} onOpenChange={(open) => {
+                                        if (!open) {
+                                            setAirlineSearchTerm("")
+                                        }
+                                    }}>
+                                        <SelectTrigger className="w-full h-12 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200 bg-neutral-50 focus:bg-white text-right" dir="rtl">
+                                            <SelectValue placeholder="اختر شركة الطيران" />
+                                        </SelectTrigger>
+                                        <SelectContent className="text-right" dir="rtl">
+                                            <div className="p-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="ابحث عن شركة الطيران..."
+                                                    value={airlineSearchTerm}
+                                                    onChange={(e) => setAirlineSearchTerm(e.target.value)}
+                                                    className="w-full p-2 border border-neutral-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200 text-right"
+                                                    dir="rtl"
+                                                />
+                                            </div>
+                                            <div className="max-h-60 overflow-y-auto">
+                                                {filteredAirlines.map((airline, index) => (
+                                                    <SelectItem key={index} value={airline} className="text-right">
+                                                        {airline}
+                                                    </SelectItem>
+                                                ))}
+                                                <SelectItem value="add_new" className="text-primary-600 font-medium text-right">
+                                                    <div className="flex items-center gap-2 justify-end">
+                                                        <Icon icon="material-symbols:add" fontSize={16} />
+                                                        إضافة شركة طيران جديدة
+                                                    </div>
+                                                </SelectItem>
+                                            </div>
+                                        </SelectContent>
+                                    </Select>
                                     {errors.arrivalAirline && <span className="text-sm text-red-500 block flex items-center gap-1">
                                         <Icon icon="material-symbols:error" fontSize={14} />
                                         {errors.arrivalAirline.message}
                                     </span>}
+                                    
+                                    {showAddAirline && (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="أدخل اسم شركة الطيران الجديدة"
+                                                value={newAirline}
+                                                onChange={(e) => setNewAirline(e.target.value)}
+                                                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                                            />
+                                            <Button
+                                                type="button"
+                                                onClick={handleAddNewAirline}
+                                                size="sm"
+                                                className="px-4"
+                                            >
+                                                إضافة
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setShowAddAirline(false)
+                                                    setNewAirline("")
+                                                }}
+                                                size="sm"
+                                                className="px-4"
+                                            >
+                                                <Icon icon="material-symbols:close" fontSize={16} />
+                                            </Button>
+                                        </div>
+                                    )}
                         </div>
                                 
                                 <div className="space-y-2">

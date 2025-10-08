@@ -82,8 +82,7 @@ const MembersFilter = ({ table, data }) => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {
-                                        data
-                                            .map(el => el[table.getColumn("rank").id])
+                                        [...new Set(data.map(el => el[table.getColumn("rank").id]))]
                                             .map((rank, index) => (
                                                 <SelectItem key={index} value={rank}>{rank}</SelectItem>
                                             ))
