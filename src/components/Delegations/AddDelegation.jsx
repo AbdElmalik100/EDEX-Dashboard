@@ -312,45 +312,27 @@ const AddDelegation = ({ subEventId }) => {
                 setAvailableNationalities(updatedNationalities)
                 localStorage.setItem('nationalities', JSON.stringify(updatedNationalities))
                 
-                // حذف من الوفود التي تستخدم هذه الجنسية
+                // مسح الجنسية من الوفود التي تستخدمها (بدون تغيير حالة الوفد)
                 const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
                 const updatedDelegations = existingDelegations.map(delegation => {
                     if (delegation.nationality === nationality) {
                         return {
                             ...delegation,
-                            nationality: "", // مسح الجنسية
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                            nationality: "" // مسح الجنسية فقط
                         }
                     }
                     return delegation
                 })
                 localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
                 
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.nationality === nationality) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                nationality: ""
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
                 window.dispatchEvent(new CustomEvent('nationalitiesUpdated'))
                 window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
                 
                 if (selectedNationality === nationality) {
                     setSelectedNationality("")
                     setValue('nationality', "")
                 }
-                toast.success(`تم حذف الجنسية "${nationality}" من جميع الوفود والأعضاء`)
+                toast.success("تم حذف الجنسية بنجاح")
                 setDeleteItem(null)
             }
         })
@@ -366,7 +348,7 @@ const AddDelegation = ({ subEventId }) => {
                 setAvailableAirports(updatedAirports)
                 localStorage.setItem('airports', JSON.stringify(updatedAirports))
                 
-                // حذف من الوفود التي تستخدم هذا المطار
+                // مسح المطار من الوفود التي تستخدمه (بدون تغيير حالة الوفد)
                 const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
                 const updatedDelegations = existingDelegations.map(delegation => {
                     if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalHall === airport) {
@@ -374,43 +356,22 @@ const AddDelegation = ({ subEventId }) => {
                             ...delegation,
                             arrivalInfo: {
                                 ...delegation.arrivalInfo,
-                                arrivalHall: "" // مسح المطار
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                                arrivalHall: "" // مسح المطار فقط
+                            }
                         }
                     }
                     return delegation
                 })
                 localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
                 
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalHall === airport) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalHall: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
                 window.dispatchEvent(new CustomEvent('airportsUpdated'))
                 window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
                 
                 if (selectedAirport === airport) {
                     setSelectedAirport("")
                     setValue('arrivalHall', "")
                 }
-                toast.success(`تم حذف المطار "${airport}" من جميع الوفود والأعضاء`)
+                toast.success("تم حذف المطار بنجاح")
                 setDeleteItem(null)
             }
         })
@@ -426,7 +387,7 @@ const AddDelegation = ({ subEventId }) => {
                 setAvailableAirlines(updatedAirlines)
                 localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
                 
-                // حذف من الوفود التي تستخدم هذه شركة الطيران
+                // مسح شركة الطيران من الوفود التي تستخدمها (بدون تغيير حالة الوفد)
                 const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
                 const updatedDelegations = existingDelegations.map(delegation => {
                     if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalAirline === airline) {
@@ -434,43 +395,22 @@ const AddDelegation = ({ subEventId }) => {
                             ...delegation,
                             arrivalInfo: {
                                 ...delegation.arrivalInfo,
-                                arrivalAirline: "" // مسح شركة الطيران
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                                arrivalAirline: "" // مسح شركة الطيران فقط
+                            }
                         }
                     }
                     return delegation
                 })
                 localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
                 
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalAirline === airline) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalAirline: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
                 window.dispatchEvent(new CustomEvent('airlinesUpdated'))
                 window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
                 
                 if (selectedAirline === airline) {
                     setSelectedAirline("")
                     setValue('arrivalAirline', "")
                 }
-                toast.success(`تم حذف شركة الطيران "${airline}" من جميع الوفود والأعضاء`)
+                toast.success("تم حذف شركة الطيران بنجاح")
                 setDeleteItem(null)
             }
         })
@@ -486,7 +426,7 @@ const AddDelegation = ({ subEventId }) => {
                 setAvailableOrigins(updatedOrigins)
                 localStorage.setItem('origins', JSON.stringify(updatedOrigins))
                 
-                // حذف من الوفود التي تستخدم هذه المدينة
+                // مسح المدينة من الوفود التي تستخدمها (بدون تغيير حالة الوفد)
                 const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
                 const updatedDelegations = existingDelegations.map(delegation => {
                     if (delegation.arrivalInfo && delegation.arrivalInfo.arrivalOrigin === origin) {
@@ -494,43 +434,22 @@ const AddDelegation = ({ subEventId }) => {
                             ...delegation,
                             arrivalInfo: {
                                 ...delegation.arrivalInfo,
-                                arrivalOrigin: "" // مسح المدينة
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
+                                arrivalOrigin: "" // مسح المدينة فقط
+                            }
                         }
                     }
                     return delegation
                 })
                 localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
                 
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalOrigin === origin) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalOrigin: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
                 window.dispatchEvent(new CustomEvent('originsUpdated'))
                 window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
                 
                 if (selectedOrigin === origin) {
                     setSelectedOrigin("")
                     setValue('arrivalOrigin', "")
                 }
-                toast.success(`تم حذف المدينة "${origin}" من جميع الوفود والأعضاء`)
+                toast.success("تم حذف المدينة بنجاح")
                 setDeleteItem(null)
             }
         })

@@ -100,8 +100,6 @@ const EditDelegation = ({ delegation, children }) => {
     })
     const [originSearchTerm, setOriginSearchTerm] = useState("")
 
-    // حالات حذف العناصر
-    const [deleteItem, setDeleteItem] = useState(null)
 
     // الاستماع لتغييرات localStorage
     useEffect(() => {
@@ -318,240 +316,6 @@ const EditDelegation = ({ delegation, children }) => {
         }
     }
 
-    // دوال الحذف
-    const handleDeleteNationality = (nationality) => {
-        setDeleteItem({
-            type: 'nationality',
-            name: nationality,
-            onDelete: () => {
-                // حذف من قائمة الجنسيات
-                const updatedNationalities = availableNationalities.filter(n => n !== nationality)
-                setAvailableNationalities(updatedNationalities)
-                localStorage.setItem('nationalities', JSON.stringify(updatedNationalities))
-                
-                // حذف من الوفود التي تستخدم هذه الجنسية
-                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
-                const updatedDelegations = existingDelegations.map(del => {
-                    if (del.nationality === nationality) {
-                        return {
-                            ...del,
-                            nationality: "", // مسح الجنسية
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
-                        }
-                    }
-                    return del
-                })
-                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
-                
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.nationality === nationality) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                nationality: ""
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
-                window.dispatchEvent(new CustomEvent('nationalitiesUpdated'))
-                window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
-                
-                if (selectedNationality === nationality) {
-                    setSelectedNationality("")
-                    setValue('nationality', "")
-                }
-                toast.success(`تم حذف الجنسية "${nationality}" من جميع الوفود والأعضاء`)
-                setDeleteItem(null)
-            }
-        })
-    }
-
-    const handleDeleteAirport = (airport) => {
-        setDeleteItem({
-            type: 'airport',
-            name: airport,
-            onDelete: () => {
-                // حذف من قائمة المطارات
-                const updatedAirports = availableAirports.filter(a => a !== airport)
-                setAvailableAirports(updatedAirports)
-                localStorage.setItem('airports', JSON.stringify(updatedAirports))
-                
-                // حذف من الوفود التي تستخدم هذا المطار
-                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
-                const updatedDelegations = existingDelegations.map(del => {
-                    if (del.arrivalInfo && del.arrivalInfo.arrivalHall === airport) {
-                        return {
-                            ...del,
-                            arrivalInfo: {
-                                ...del.arrivalInfo,
-                                arrivalHall: "" // مسح المطار
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
-                        }
-                    }
-                    return del
-                })
-                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
-                
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalHall === airport) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalHall: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
-                window.dispatchEvent(new CustomEvent('airportsUpdated'))
-                window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
-                
-                if (selectedAirport === airport) {
-                    setSelectedAirport("")
-                    setValue('arrivalHall', "")
-                }
-                toast.success(`تم حذف المطار "${airport}" من جميع الوفود والأعضاء`)
-                setDeleteItem(null)
-            }
-        })
-    }
-
-    const handleDeleteAirline = (airline) => {
-        setDeleteItem({
-            type: 'airline',
-            name: airline,
-            onDelete: () => {
-                // حذف من قائمة شركات الطيران
-                const updatedAirlines = availableAirlines.filter(a => a !== airline)
-                setAvailableAirlines(updatedAirlines)
-                localStorage.setItem('airlines', JSON.stringify(updatedAirlines))
-                
-                // حذف من الوفود التي تستخدم هذه شركة الطيران
-                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
-                const updatedDelegations = existingDelegations.map(del => {
-                    if (del.arrivalInfo && del.arrivalInfo.arrivalAirline === airline) {
-                        return {
-                            ...del,
-                            arrivalInfo: {
-                                ...del.arrivalInfo,
-                                arrivalAirline: "" // مسح شركة الطيران
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
-                        }
-                    }
-                    return del
-                })
-                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
-                
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalAirline === airline) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalAirline: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
-                window.dispatchEvent(new CustomEvent('airlinesUpdated'))
-                window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
-                
-                if (selectedAirline === airline) {
-                    setSelectedAirline("")
-                    setValue('arrivalAirline', "")
-                }
-                toast.success(`تم حذف شركة الطيران "${airline}" من جميع الوفود والأعضاء`)
-                setDeleteItem(null)
-            }
-        })
-    }
-
-    const handleDeleteOrigin = (origin) => {
-        setDeleteItem({
-            type: 'origin',
-            name: origin,
-            onDelete: () => {
-                // حذف من قائمة المدن
-                const updatedOrigins = availableOrigins.filter(o => o !== origin)
-                setAvailableOrigins(updatedOrigins)
-                localStorage.setItem('origins', JSON.stringify(updatedOrigins))
-                
-                // حذف من الوفود التي تستخدم هذه المدينة
-                const existingDelegations = JSON.parse(localStorage.getItem('delegations') || '[]')
-                const updatedDelegations = existingDelegations.map(del => {
-                    if (del.arrivalInfo && del.arrivalInfo.arrivalOrigin === origin) {
-                        return {
-                            ...del,
-                            arrivalInfo: {
-                                ...del.arrivalInfo,
-                                arrivalOrigin: "" // مسح المدينة
-                            },
-                            delegationStatus: 'incomplete' // تعيين حالة غير مكتملة
-                        }
-                    }
-                    return del
-                })
-                localStorage.setItem('delegations', JSON.stringify(updatedDelegations))
-                
-                // حذف من الأعضاء المرتبطة بالوفود
-                const existingMembers = JSON.parse(localStorage.getItem('members') || '[]')
-                const updatedMembers = existingMembers.map(member => {
-                    if (member.delegation && member.delegation.arrivalInfo && member.delegation.arrivalInfo.arrivalOrigin === origin) {
-                        return {
-                            ...member,
-                            delegation: {
-                                ...member.delegation,
-                                arrivalInfo: {
-                                    ...member.delegation.arrivalInfo,
-                                    arrivalOrigin: ""
-                                }
-                            }
-                        }
-                    }
-                    return member
-                })
-                localStorage.setItem('members', JSON.stringify(updatedMembers))
-                
-                window.dispatchEvent(new CustomEvent('originsUpdated'))
-                window.dispatchEvent(new CustomEvent('delegationUpdated'))
-                window.dispatchEvent(new CustomEvent('memberUpdated'))
-                
-                if (selectedOrigin === origin) {
-                    setSelectedOrigin("")
-                    setValue('arrivalOrigin', "")
-                }
-                toast.success(`تم حذف المدينة "${origin}" من جميع الوفود والأعضاء`)
-                setDeleteItem(null)
-            }
-        })
-    }
 
     // تصفية الجنسيات حسب البحث
     const filteredNationalities = availableNationalities.filter(nationality =>
@@ -880,25 +644,11 @@ const EditDelegation = ({ delegation, children }) => {
                                             <div className="max-h-[200px] overflow-y-auto">
                                                 {filteredNationalities.length > 0 ? (
                                                     <>
-                                                        {filteredNationalities.map((nationality, index) => (
-                                                            <SelectItem key={index} value={nationality} className="text-right" dir="rtl">
-                                                                <div className="flex items-center justify-between w-full gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onPointerDown={(e) => {
-                                                                            e.preventDefault()
-                                                                            e.stopPropagation()
-                                                                            handleDeleteNationality(nationality)
-                                                                        }}
-                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
-                                                                        title="حذف الجنسية"
-                                                                    >
-                                                                        <Icon icon="material-symbols:close" fontSize={16} />
-                                                                    </button>
-                                                                    <span className="flex-1">{nationality}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
+                                                          {filteredNationalities.map((nationality, index) => (
+                                                              <SelectItem key={index} value={nationality} className="text-right" dir="rtl">
+                                                                 <span className="w-full">{nationality}</span>
+                                                              </SelectItem>
+                                                          ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
                                                             <div className="flex items-center gap-2">
                                                                 <Icon icon="material-symbols:add" fontSize={16} />
@@ -1009,25 +759,11 @@ const EditDelegation = ({ delegation, children }) => {
                                             <div className="max-h-[200px] overflow-y-auto">
                                                 {filteredAirports.length > 0 ? (
                                                     <>
-                                                        {filteredAirports.map((airport, index) => (
-                                                            <SelectItem key={index} value={airport} className="text-right" dir="rtl">
-                                                                <div className="flex items-center justify-between w-full gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onPointerDown={(e) => {
-                                                                            e.preventDefault()
-                                                                            e.stopPropagation()
-                                                                            handleDeleteAirport(airport)
-                                                                        }}
-                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
-                                                                        title="حذف المطار"
-                                                                    >
-                                                                        <Icon icon="material-symbols:close" fontSize={16} />
-                                                                    </button>
-                                                                    <span className="flex-1">{airport}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
+                                                          {filteredAirports.map((airport, index) => (
+                                                              <SelectItem key={index} value={airport} className="text-right" dir="rtl">
+                                                                 <span className="w-full">{airport}</span>
+                                                              </SelectItem>
+                                                          ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
                                                             <div className="flex items-center gap-2">
                                                                 <Icon icon="material-symbols:add" fontSize={16} />
@@ -1154,25 +890,11 @@ const EditDelegation = ({ delegation, children }) => {
                                                 />
                                             </div>
                                             <div className="max-h-60 overflow-y-auto">
-                                                {filteredAirlines.map((airline, index) => (
-                                                    <SelectItem key={index} value={airline} className="text-right">
-                                                        <div className="flex items-center justify-between w-full gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onPointerDown={(e) => {
-                                                                    e.preventDefault()
-                                                                    e.stopPropagation()
-                                                                    handleDeleteAirline(airline)
-                                                                }}
-                                                                className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
-                                                                title="حذف شركة الطيران"
-                                                            >
-                                                                <Icon icon="material-symbols:close" fontSize={16} />
-                                                            </button>
-                                                            <span className="flex-1">{airline}</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
+                                                  {filteredAirlines.map((airline, index) => (
+                                                      <SelectItem key={index} value={airline} className="text-right">
+                                                         <span className="w-full">{airline}</span>
+                                                      </SelectItem>
+                                                  ))}
                                                 <SelectItem value="add_new" className="text-primary-600 font-medium text-right">
                                                     <div className="flex items-center gap-2 justify-end">
                                                         <Icon icon="material-symbols:add" fontSize={16} />
@@ -1257,25 +979,11 @@ const EditDelegation = ({ delegation, children }) => {
                                             <div className="max-h-[200px] overflow-y-auto">
                                                 {filteredOrigins.length > 0 ? (
                                                     <>
-                                                        {filteredOrigins.map((origin, index) => (
-                                                            <SelectItem key={index} value={origin} className="text-right" dir="rtl">
-                                                                <div className="flex items-center justify-between w-full gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onPointerDown={(e) => {
-                                                                            e.preventDefault()
-                                                                            e.stopPropagation()
-                                                                            handleDeleteOrigin(origin)
-                                                                        }}
-                                                                        className="text-red-500 hover:text-red-700 p-1 rounded flex-shrink-0"
-                                                                        title="حذف المدينة"
-                                                                    >
-                                                                        <Icon icon="material-symbols:close" fontSize={16} />
-                                                                    </button>
-                                                                    <span className="flex-1">{origin}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
+                                                          {filteredOrigins.map((origin, index) => (
+                                                              <SelectItem key={index} value={origin} className="text-right" dir="rtl">
+                                                                 <span className="w-full">{origin}</span>
+                                                              </SelectItem>
+                                                          ))}
                                                         <SelectItem value="add_new" className="text-primary-600 font-medium hover:bg-primary-50 border-t">
                                                             <div className="flex items-center gap-2">
                                                                 <Icon icon="material-symbols:add" fontSize={16} />
@@ -1468,89 +1176,6 @@ const EditDelegation = ({ delegation, children }) => {
                 </form>
             </DialogContent>
         </Dialog>
-        
-        {/* مكون تأكيد الحذف */}
-        {deleteItem && (
-            <div 
-                className="fixed inset-0 flex items-center justify-center" 
-                data-delete-popup="true"
-                style={{ 
-                    pointerEvents: 'auto',
-                    zIndex: 99999999,
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    transform: 'translateZ(0)',
-                    willChange: 'transform',
-                    isolation: 'isolate',
-                    contain: 'layout style paint'
-                }}
-                onClick={(e) => {
-                    e.stopPropagation()
-                    if (e.target === e.currentTarget) {
-                        setDeleteItem(null)
-                    }
-                }}
-            >
-                <div 
-                    className="absolute inset-0 bg-black/50" 
-                    style={{ 
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 1
-                    }}
-                />
-                <div 
-                    className="relative bg-white rounded-lg shadow-xl max-w-sm w-full mx-4 p-6" 
-                    dir="rtl" 
-                    style={{ 
-                        pointerEvents: 'auto',
-                        position: 'relative',
-                        zIndex: 2,
-                        transform: 'translateZ(0)',
-                        willChange: 'transform',
-                        isolation: 'isolate',
-                        margin: 'auto',
-                        maxWidth: '24rem',
-                        width: 'calc(100% - 2rem)'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <p className="text-gray-700 text-right mb-4">
-                        هل أنت متأكد من الحذف؟
-                    </p>
-                    <div className="flex gap-3 justify-end">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setDeleteItem(null)
-                            }}
-                            className="px-4 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium"
-                            style={{ pointerEvents: 'auto' }}
-                        >
-                            إلغاء
-                        </button>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                deleteItem.onDelete()
-                            }}
-                            className="px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 font-medium"
-                            style={{ pointerEvents: 'auto' }}
-                        >
-                            حذف
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
         
         </>
     )
