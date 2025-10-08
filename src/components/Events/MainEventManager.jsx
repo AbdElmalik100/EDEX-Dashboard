@@ -59,6 +59,12 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
                 setMainEvents(updatedEvents)
                 toast.success("تم تحديث الحدث بنجاح")
                 if (onEventUpdated) onEventUpdated(editingEvent.id, data)
+                
+                // إرسال custom event لتحديث باقي الصفحات في نفس التابة
+                window.dispatchEvent(new CustomEvent('eventUpdated'))
+                
+                // إرسال إشارة للتابات الأخرى عبر localStorage
+                localStorage.setItem('lastEventUpdate', Date.now().toString())
             } else {
                 // إضافة حدث جديد
                 const newEvent = {
@@ -75,6 +81,9 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
                 
                 // إرسال custom event لتحديث السايد بار
                 window.dispatchEvent(new CustomEvent('eventAdded'))
+                
+                // إرسال إشارة للتابات الأخرى عبر localStorage
+                localStorage.setItem('lastEventUpdate', Date.now().toString())
             }
             
             reset()
@@ -108,6 +117,9 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
             
             // إرسال custom event لتحديث السايد بار
             window.dispatchEvent(new CustomEvent('eventDeleted'))
+            
+            // إرسال إشارة للتابات الأخرى عبر localStorage
+            localStorage.setItem('lastEventUpdate', Date.now().toString())
         } else {
             toast.error(deleteResult.message)
         }

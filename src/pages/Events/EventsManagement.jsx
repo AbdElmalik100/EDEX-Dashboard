@@ -69,22 +69,35 @@ const EventsManagement = () => {
             loadData()
         }
         
-        window.addEventListener('storage', handleStorageChange)
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
+        
+        // الاستماع للأحداث المخصصة (لنفس التابة)
         window.addEventListener('memberAdded', handleStorageChange)
         window.addEventListener('memberDeleted', handleStorageChange)
         window.addEventListener('memberUpdated', handleStorageChange)
         window.addEventListener('delegationAdded', handleStorageChange)
         window.addEventListener('delegationDeleted', handleStorageChange)
         window.addEventListener('delegationUpdated', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
         
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
             window.removeEventListener('memberAdded', handleStorageChange)
             window.removeEventListener('memberDeleted', handleStorageChange)
             window.removeEventListener('memberUpdated', handleStorageChange)
             window.removeEventListener('delegationAdded', handleStorageChange)
             window.removeEventListener('delegationDeleted', handleStorageChange)
             window.removeEventListener('delegationUpdated', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
         }
     }, [])
 

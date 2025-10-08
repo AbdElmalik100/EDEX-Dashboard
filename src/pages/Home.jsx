@@ -90,12 +90,25 @@ const Home = () => {
             loadData()
         }
         
-        window.addEventListener('storage', handleStorageChange)
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
+        
+        // الاستماع للأحداث المخصصة (لنفس التابة)
         window.addEventListener('memberAdded', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
         
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
             window.removeEventListener('memberAdded', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
         }
     }, [])
 

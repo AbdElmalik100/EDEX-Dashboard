@@ -111,7 +111,7 @@ const DepartureSessionsList = ({ sessions, delegation, onDelete, onUpdate }) => 
                             <p className="font-medium">{session.flightNumber}</p>
                         </div>
                         <div>
-                            <span className="text-muted-foreground">الوجهة:</span>
+                            <span className="text-muted-foreground">مغادر إلى:</span>
                             <p className="font-medium">{session.destination}</p>
                         </div>
                         <div>

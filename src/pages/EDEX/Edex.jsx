@@ -8,6 +8,7 @@ import Stats from "../../components/Stats";
 
 const Edex = () => {
     const [subEvents, setSubEvents] = useState([]);
+    const [currentEvent, setCurrentEvent] = useState(null);
     const [stats, setStats] = useState({
         delegationNum: 0,
         militaryDelegationNum: 0,
@@ -22,9 +23,15 @@ const Edex = () => {
             if (savedEvents) {
                 try {
                     const events = JSON.parse(savedEvents);
-                    const edexEvent = events.find(event => event.name === 'ايديكس');
+                    // البحث عن حدث ايديكس بالـ ID أو الاسم (للدعم المتوافق)
+                    const edexEvent = events.find(event => 
+                        event.id === 1 || // ID الخاص بايديكس
+                        event.name === 'ايديكس' || 
+                        event.englishName === 'edex'
+                    );
                     if (edexEvent && edexEvent.sub_events) {
                         setSubEvents(edexEvent.sub_events);
+                        setCurrentEvent(edexEvent);
                         
                         // حساب الإحصائيات الحقيقية
                         const subEventIds = edexEvent.sub_events.map(se => se.id);
@@ -66,6 +73,7 @@ const Edex = () => {
                         });
                     } else {
                         setSubEvents([]);
+                        setCurrentEvent(null);
                         setStats({
                             delegationNum: 0,
                             militaryDelegationNum: 0,
@@ -76,6 +84,7 @@ const Edex = () => {
                 } catch (error) {
                     console.error('خطأ في تحليل بيانات الأحداث:', error);
                     setSubEvents([]);
+                    setCurrentEvent(null);
                     setStats({
                         delegationNum: 0,
                         militaryDelegationNum: 0,
@@ -85,6 +94,7 @@ const Edex = () => {
                 }
             } else {
                 setSubEvents([]);
+                setCurrentEvent(null);
                 setStats({
                     delegationNum: 0,
                     militaryDelegationNum: 0,
@@ -101,18 +111,31 @@ const Edex = () => {
             loadEvents()
         }
         
-        window.addEventListener('storage', handleStorageChange)
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
+        
+        // الاستماع للأحداث المخصصة (لنفس التابة)
         window.addEventListener('eventAdded', handleStorageChange)
         window.addEventListener('eventDeleted', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
         window.addEventListener('delegationAdded', handleStorageChange)
         window.addEventListener('delegationDeleted', handleStorageChange)
         window.addEventListener('memberAdded', handleStorageChange)
         window.addEventListener('memberDeleted', handleStorageChange)
         
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
             window.removeEventListener('eventAdded', handleStorageChange)
             window.removeEventListener('eventDeleted', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
             window.removeEventListener('delegationAdded', handleStorageChange)
             window.removeEventListener('delegationDeleted', handleStorageChange)
             window.removeEventListener('memberAdded', handleStorageChange)
@@ -140,7 +163,7 @@ const Edex = () => {
                             </Button>
                             <AddEvent />
                         </div>
-                        <EventsList events={subEvents} mainEventName="ايديكس" />
+                        <EventsList events={subEvents} mainEventName={currentEvent?.name} mainEventEnglishName={currentEvent?.englishName} />
                     </>
                 )}
             </div>

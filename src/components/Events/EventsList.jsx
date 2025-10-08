@@ -4,7 +4,7 @@ import { events } from "../../constants"
 import { useState, useEffect } from "react"
 
 
-const EventsList = ({ events: customEvents, categoryId, mainEventName }) => {
+const EventsList = ({ events: customEvents, categoryId, mainEventName, mainEventEnglishName }) => {
     const navigate = useNavigate()
     const [eventsWithStats, setEventsWithStats] = useState([])
     
@@ -89,10 +89,17 @@ const EventsList = ({ events: customEvents, categoryId, mainEventName }) => {
                                 navigate(`/category/${categoryId}/event/${event.id || index}`)
                             } else if (mainEventName) {
                                 // التنقل إلى صفحة وفود الحدث الفرعي
-                                const mainEventPath = mainEventName === 'ايديكس' ? 'edex' :
+                                let mainEventPath = ''
+                                if (mainEventEnglishName) {
+                                    // استخدام الاسم الإنجليزي إذا كان متوفراً
+                                    mainEventPath = mainEventEnglishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                                } else {
+                                    // استخدام الاسم العربي كـ fallback
+                                    mainEventPath = mainEventName === 'ايديكس' ? 'edex' :
                                                    mainEventName === 'الفروسية' ? 'equestrianism' :
                                                    mainEventName === 'النجم الساطع' ? 'brightstar' :
                                                    mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                }
                                 navigate(`/${mainEventPath}/${event.id}`)
                             } else {
                                 navigate(`/edex/${event.id}`)

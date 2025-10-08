@@ -9,6 +9,7 @@ const SideBar = () => {
     const route = useLocation()
     const handleLogout = () => navigate('/login')    
     const [subEvents, setSubEvents] = useState({})
+    const [dynamicNavLinks, setDynamicNavLinks] = useState([])
 
     // جلب بيانات الأحداث من localStorage أو API
     useEffect(() => {
@@ -18,6 +19,7 @@ const SideBar = () => {
             try {
                 const events = JSON.parse(savedEvents)
                 const eventsMap = {}
+                const dynamicLinks = []
                 
                 events.forEach(event => {
                     // تحويل اسم الحدث إلى مسار مناسب
@@ -46,11 +48,22 @@ const SideBar = () => {
                         name: subEvent.name,
                         to: `${path}/${subEvent.id}`
                     })) || []
+
+                    // إضافة الرابط الديناميكي
+                    dynamicLinks.push({
+                        name: event.name,
+                        icon: event.icon,
+                        to: path,
+                        type: "main-event",
+                        isFromLocalStorage: true
+                    })
                 })
                 
                 setSubEvents(eventsMap)
+                setDynamicNavLinks(dynamicLinks)
             } catch (error) {
                 console.error('خطأ في تحليل بيانات الأحداث:', error)
+                setDynamicNavLinks([])
             }
         } else {
             // البيانات الافتراضية
@@ -67,6 +80,7 @@ const SideBar = () => {
                 ]
             }
             setSubEvents(mockSubEvents)
+            setDynamicNavLinks([])
         }
     }, [])
 
@@ -78,6 +92,7 @@ const SideBar = () => {
                 try {
                     const events = JSON.parse(savedEvents)
                     const eventsMap = {}
+                    const dynamicLinks = []
                     
                     events.forEach(event => {
                         // تحويل اسم الحدث إلى مسار مناسب
@@ -106,29 +121,52 @@ const SideBar = () => {
                             name: subEvent.name,
                             to: `${path}/${subEvent.id}`
                         })) || []
+
+                        // إضافة الرابط الديناميكي
+                        dynamicLinks.push({
+                            name: event.name,
+                            icon: event.icon,
+                            to: path,
+                            type: "main-event",
+                            isFromLocalStorage: true
+                        })
                     })
                     
                     setSubEvents(eventsMap)
+                    setDynamicNavLinks(dynamicLinks)
                 } catch (error) {
                     console.error('خطأ في تحليل بيانات الأحداث:', error)
+                    setDynamicNavLinks([])
                 }
+            } else {
+                setDynamicNavLinks([])
             }
         }
 
-        // الاستماع لتغييرات localStorage
-        window.addEventListener('storage', handleStorageChange)
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
         
-        // الاستماع للأحداث المخصصة
+        // الاستماع للأحداث المخصصة (لنفس التابة)
         window.addEventListener('eventAdded', handleStorageChange)
         window.addEventListener('eventDeleted', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
         
         // فحص دوري للتغييرات (للتطوير)
         const interval = setInterval(handleStorageChange, 1000)
 
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
             window.removeEventListener('eventAdded', handleStorageChange)
             window.removeEventListener('eventDeleted', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
             clearInterval(interval)
         }
     }, [])
@@ -151,8 +189,8 @@ const SideBar = () => {
                     </NavLink>
                 </li>
                 
-                {/* الأحداث الأساسية الموجودة */}
-                {navLinks.filter(link => link.type === 'main-event').map((link, index) => (
+                {/* الأحداث الأساسية من localStorage */}
+                {dynamicNavLinks.map((link, index) => (
                         <li key={index}>
                         <NavLink to={link.to} className="link">
                                 <Icon icon={link.icon} fontSize={24} />
@@ -163,8 +201,8 @@ const SideBar = () => {
                 
                 {/* الأحداث الجديدة المضافة */}
                 {Object.keys(subEvents).map((path) => {
-                    // تجاهل الأحداث الموجودة بالفعل في navLinks
-                    const existingEvent = navLinks.find(link => link.to === path)
+                    // تجاهل الأحداث الموجودة بالفعل في dynamicNavLinks
+                    const existingEvent = dynamicNavLinks.find(link => link.to === path)
                     if (existingEvent) return null
                     
                     // جلب اسم الحدث من localStorage

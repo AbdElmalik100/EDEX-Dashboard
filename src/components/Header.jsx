@@ -27,14 +27,27 @@ const Header = () => {
             loadEvents()
         }
 
-        window.addEventListener('storage', handleStorageChange)
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
+        
+        // الاستماع للأحداث المخصصة (لنفس التابة)
         window.addEventListener('eventAdded', handleStorageChange)
         window.addEventListener('eventDeleted', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
 
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
             window.removeEventListener('eventAdded', handleStorageChange)
             window.removeEventListener('eventDeleted', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
         }
     }, [])
 
@@ -44,11 +57,29 @@ const Header = () => {
         case '/':
             return "لوحة التحكم"
         case '/edex':
-            return "معرض ايديكس" 
+            // البحث عن حدث ايديكس في localStorage
+            const edexEvent = events.find(event => 
+                event.id === 1 || 
+                event.name === 'ايديكس' || 
+                event.englishName === 'edex'
+            )
+            return edexEvent ? edexEvent.name : "ايديكس"
         case '/equestrianism':
-            return "الفروسية" 
+            // البحث عن حدث الفروسية في localStorage
+            const equestrianismEvent = events.find(event => 
+                event.id === 2 || 
+                event.name === 'الفروسية' || 
+                event.englishName === 'equestrianism'
+            )
+            return equestrianismEvent ? equestrianismEvent.name : "الفروسية"
         case '/brightstar':
-            return "النجم الساطع"
+            // البحث عن حدث النجم الساطع في localStorage
+            const brightstarEvent = events.find(event => 
+                event.id === 3 || 
+                event.name === 'النجم الساطع' || 
+                event.englishName === 'brightstar'
+            )
+            return brightstarEvent ? brightstarEvent.name : "النجم الساطع"
         case '/events-management':
             return "إدارة الأحداث"
         case '/all-members':

@@ -8,6 +8,7 @@ import Stats from "../../components/Stats"
 
 const Equestrianism = () => {
     const [subEvents, setSubEvents] = useState([]);
+    const [currentEvent, setCurrentEvent] = useState(null);
     const [stats, setStats] = useState({
         delegationNum: 0,
         militaryDelegationNum: 0,
@@ -22,9 +23,15 @@ const Equestrianism = () => {
             if (savedEvents) {
                 try {
                     const events = JSON.parse(savedEvents);
-                    const equestrianismEvent = events.find(event => event.name === 'الفروسية');
+                    // البحث عن حدث الفروسية بالـ ID أو الاسم (للدعم المتوافق)
+                    const equestrianismEvent = events.find(event => 
+                        event.id === 2 || // ID الخاص بالفروسية
+                        event.name === 'الفروسية' || 
+                        event.englishName === 'equestrianism'
+                    );
                     if (equestrianismEvent && equestrianismEvent.sub_events) {
                         setSubEvents(equestrianismEvent.sub_events);
+                        setCurrentEvent(equestrianismEvent);
                         
                         // حساب الإحصائيات الحقيقية
                         const subEventIds = equestrianismEvent.sub_events.map(se => se.id);
@@ -66,6 +73,7 @@ const Equestrianism = () => {
                         });
                     } else {
                         setSubEvents([]);
+                        setCurrentEvent(null);
                         setStats({
                             delegationNum: 0,
                             militaryDelegationNum: 0,
@@ -76,6 +84,7 @@ const Equestrianism = () => {
                 } catch (error) {
                     console.error('خطأ في تحليل بيانات الأحداث:', error);
                     setSubEvents([]);
+                    setCurrentEvent(null);
                     setStats({
                         delegationNum: 0,
                         militaryDelegationNum: 0,
@@ -85,6 +94,7 @@ const Equestrianism = () => {
                 }
             } else {
                 setSubEvents([]);
+                setCurrentEvent(null);
                 setStats({
                     delegationNum: 0,
                     militaryDelegationNum: 0,
@@ -104,6 +114,7 @@ const Equestrianism = () => {
         window.addEventListener('storage', handleStorageChange)
         window.addEventListener('eventAdded', handleStorageChange)
         window.addEventListener('eventDeleted', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
         window.addEventListener('delegationAdded', handleStorageChange)
         window.addEventListener('delegationDeleted', handleStorageChange)
         window.addEventListener('memberAdded', handleStorageChange)
@@ -113,6 +124,7 @@ const Equestrianism = () => {
             window.removeEventListener('storage', handleStorageChange)
             window.removeEventListener('eventAdded', handleStorageChange)
             window.removeEventListener('eventDeleted', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
             window.removeEventListener('delegationAdded', handleStorageChange)
             window.removeEventListener('delegationDeleted', handleStorageChange)
             window.removeEventListener('memberAdded', handleStorageChange)
@@ -140,7 +152,7 @@ const Equestrianism = () => {
                             </Button>
                             <AddEvent />
                         </div>
-                        <EventsList events={subEvents} mainEventName="الفروسية" />
+                        <EventsList events={subEvents} mainEventName={currentEvent?.name} mainEventEnglishName={currentEvent?.englishName} />
                     </>
                 )}
             </div>
