@@ -50,21 +50,9 @@ const DeletePopup = ({item, children, onDelete}) => {
                 }
             } else if ((item.original && item.original.sub_events) || item.sub_events) {
                 // حذف حدث رئيسي
-
                 
-                // حذف جميع البيانات المرتبطة بالحدث الرئيسي
-                const deleteResult = deleteMainEventData(itemId)
-                
-                if (deleteResult.success) {
-                    // استدعاء دالة الحذف الممررة من المكون الأب
-                    onDelete && onDelete(itemId)
-                    const stats = deleteResult.stats
-                    toast.success(`تم حذف الحدث الرئيسي بنجاح (${stats.subEvents} حدث فرعي، ${stats.delegations} وفد، ${stats.members} عضو)`)
-                } else {
-                    toast.error(deleteResult.message)
-                    setLoading(false)
-                    return
-                }
+                // استدعاء دالة الحذف الممررة من المكون الأب (ستتعامل مع الحذف)
+                onDelete && onDelete(itemId)
             } else if ((item.original && item.original.created_at) || item.created_at) {
                 // حذف حدث فرعي
 

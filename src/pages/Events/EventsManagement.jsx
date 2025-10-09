@@ -23,6 +23,11 @@ const EventsManagement = () => {
                 try {
                     const events = JSON.parse(savedEvents)
                     setMainEvents(events)
+                    
+                    // إلغاء تحديد الحدث إذا كان محذوف
+                    if (selectedMainEvent && !events.find(e => e.id === selectedMainEvent.id)) {
+                        setSelectedMainEvent(null)
+                    }
                 } catch (error) {
                     console.error('خطأ في تحليل بيانات الأحداث:', error)
                     setMainEvents([])
@@ -83,6 +88,8 @@ const EventsManagement = () => {
         window.addEventListener('delegationAdded', handleStorageChange)
         window.addEventListener('delegationDeleted', handleStorageChange)
         window.addEventListener('delegationUpdated', handleStorageChange)
+        window.addEventListener('eventAdded', handleStorageChange)
+        window.addEventListener('eventDeleted', handleStorageChange)
         window.addEventListener('eventUpdated', handleStorageChange)
         
         return () => {
@@ -97,6 +104,8 @@ const EventsManagement = () => {
             window.removeEventListener('delegationAdded', handleStorageChange)
             window.removeEventListener('delegationDeleted', handleStorageChange)
             window.removeEventListener('delegationUpdated', handleStorageChange)
+            window.removeEventListener('eventAdded', handleStorageChange)
+            window.removeEventListener('eventDeleted', handleStorageChange)
             window.removeEventListener('eventUpdated', handleStorageChange)
         }
     }, [])
@@ -154,6 +163,12 @@ const EventsManagement = () => {
     const handleMainEventDeleted = (eventId) => {
         const updatedEvents = mainEvents.filter(event => event.id !== eventId)
         setMainEvents(updatedEvents)
+        
+        // إلغاء تحديد الحدث إذا كان محذوف
+        if (selectedMainEvent && selectedMainEvent.id === eventId) {
+            setSelectedMainEvent(null)
+        }
+        
         // حفظ في localStorage
         localStorage.setItem('mainEvents', JSON.stringify(updatedEvents))
     }

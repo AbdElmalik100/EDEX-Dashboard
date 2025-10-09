@@ -58,6 +58,55 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
         setMainEvents(events)
     }, [events])
 
+    // تحديث selectedEvent عند تغيير الـ props
+    useEffect(() => {
+        // selectedEvent يأتي من props، لا نحتاج لحفظه في state محلي
+    }, [selectedEvent])
+
+    // الاستماع لتغييرات localStorage والأحداث المخصصة
+    useEffect(() => {
+        const handleStorageChange = () => {
+            // إعادة تحميل البيانات من localStorage
+            const savedEvents = localStorage.getItem('mainEvents')
+            if (savedEvents) {
+                try {
+                    const parsedEvents = JSON.parse(savedEvents)
+                    setMainEvents(parsedEvents)
+                    
+                    // إلغاء تحديد الحدث إذا كان محذوف
+                    if (selectedEvent && !parsedEvents.find(e => e.id === selectedEvent.id)) {
+                        onEventSelected && onEventSelected(null)
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحليل بيانات الأحداث:', error)
+                }
+            }
+        }
+
+        // الاستماع لتغييرات localStorage (للتابات الأخرى)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'lastEventUpdate') {
+                handleStorageChange()
+            }
+        })
+        
+        // الاستماع للأحداث المخصصة (لنفس التابة)
+        window.addEventListener('eventAdded', handleStorageChange)
+        window.addEventListener('eventDeleted', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
+
+        return () => {
+            window.removeEventListener('storage', (event) => {
+                if (event.key === 'lastEventUpdate') {
+                    handleStorageChange()
+                }
+            })
+            window.removeEventListener('eventAdded', handleStorageChange)
+            window.removeEventListener('eventDeleted', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
+        }
+    }, [])
+
     const onSubmit = handleSubmit((data) => {
         // التحقق الإضافي من التكرار قبل الحفظ
         const existingEvent = mainEvents.find(event => 
@@ -81,6 +130,10 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
                         : event
                 )
                 setMainEvents(updatedEvents)
+                
+                // حفظ في localStorage
+                localStorage.setItem('mainEvents', JSON.stringify(updatedEvents))
+                
                 toast.success("تم تحديث الحدث بنجاح")
                 if (onEventUpdated) onEventUpdated(editingEvent.id, data)
                 
@@ -100,6 +153,10 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
                     sub_events: []
                 }
                 setMainEvents([...mainEvents, newEvent])
+                
+                // حفظ في localStorage
+                localStorage.setItem('mainEvents', JSON.stringify([...mainEvents, newEvent]))
+                
                 toast.success("تم إضافة الحدث بنجاح")
                 if (onEventAdded) onEventAdded(newEvent)
                 
@@ -126,27 +183,37 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
     }
 
     const handleDelete = (eventId) => {
-        // حذف جميع البيانات المرتبطة بالحدث الرئيسي
+        // حذف الحدث الرئيسي من القائمة أولاً
+        const updatedEvents = mainEvents.filter(event => event.id !== eventId)
+        setMainEvents(updatedEvents)
+        
+        // إلغاء تحديد الحدث إذا كان محذوف
+        if (selectedEvent && selectedEvent.id === eventId) {
+            onEventSelected && onEventSelected(null)
+        }
+        
+        // حذف جميع البيانات المرتبطة بالحدث الرئيسي (قبل حذف الحدث من localStorage)
         const deleteResult = deleteMainEventData(eventId)
         
+        // حفظ في localStorage
+        localStorage.setItem('mainEvents', JSON.stringify(updatedEvents))
+        
+        // استدعاء دالة الحذف في المكون الأب
+        onEventDeleted && onEventDeleted(eventId)
+        
         if (deleteResult.success) {
-            // حذف الحدث الرئيسي من القائمة
-            const updatedEvents = mainEvents.filter(event => event.id !== eventId)
-            setMainEvents(updatedEvents)
-            onEventDeleted && onEventDeleted(eventId)
-            
             // رسالة نجاح مفصلة
             const stats = deleteResult.stats
             toast.success(`تم حذف الحدث الرئيسي بنجاح (${stats.subEvents} حدث فرعي، ${stats.delegations} وفد، ${stats.members} عضو)`)
-            
-            // إرسال custom event لتحديث السايد بار
-            window.dispatchEvent(new CustomEvent('eventDeleted'))
-            
-            // إرسال إشارة للتابات الأخرى عبر localStorage
-            localStorage.setItem('lastEventUpdate', Date.now().toString())
         } else {
             toast.error(deleteResult.message)
         }
+        
+        // إرسال custom event لتحديث السايد بار
+        window.dispatchEvent(new CustomEvent('eventDeleted'))
+        
+        // إرسال إشارة للتابات الأخرى عبر localStorage
+        localStorage.setItem('lastEventUpdate', Date.now().toString())
     }
 
     const handleClose = () => {

@@ -217,14 +217,14 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
 
 
     return (
-        <div className="flex items-center gap-4 justify-between py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between py-4">
             <Input
                 placeholder="بحث ..."
                 value={table.getState().globalFilter ?? ""}
                 onChange={(event) => table.setGlobalFilter(event.target.value)}
-                className="max-w-sm !ring-0"
+                className="w-full sm:max-w-sm !ring-0"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <AllMembersFilter table={table} data={data} />
                 <MembersReportExport data={data} />
             </div>
