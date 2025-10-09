@@ -54,33 +54,34 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
                 const members = JSON.parse(savedMembers)
                 const delegations = savedDelegations ? JSON.parse(savedDelegations) : []
                 
-                // استخراج الأحداث الفرعية من eventCategories
+                // استخراج الأحداث الفرعية من mainEvents (البيانات الحقيقية)
                 let subEvents = []
-                if (savedEventCategories) {
-                    const eventCategories = JSON.parse(savedEventCategories)
-                    eventCategories.forEach(category => {
-                        if (category.events && Array.isArray(category.events)) {
-                            category.events.forEach(event => {
+                const savedMainEvents = localStorage.getItem('mainEvents')
+                if (savedMainEvents) {
+                    const mainEvents = JSON.parse(savedMainEvents)
+                    mainEvents.forEach(mainEvent => {
+                        if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                            mainEvent.sub_events.forEach(subEvent => {
                                 subEvents.push({
-                                    id: event.id,
-                                    name: event.name,
-                                    mainEventId: category.id,
-                                    mainEventName: category.name
+                                    id: subEvent.id,
+                                    name: subEvent.name,
+                                    mainEventId: mainEvent.id,
+                                    mainEventName: mainEvent.name
                                 })
                             })
                         }
                     })
                 }
                 
-                // طباعة تفاصيل eventCategories
-                console.log('تفاصيل eventCategories:')
-                if (savedEventCategories) {
-                    const eventCategories = JSON.parse(savedEventCategories)
-                    eventCategories.forEach(category => {
-                        console.log(`الحدث الرئيسي: ${category.name} (ID: ${category.id})`)
-                        if (category.events && Array.isArray(category.events)) {
-                            category.events.forEach(event => {
-                                console.log(`  - الحدث الفرعي: ${event.name} (ID: ${event.id})`)
+                // طباعة تفاصيل الأحداث الحقيقية
+                console.log('تفاصيل الأحداث الحقيقية من mainEvents:')
+                if (savedMainEvents) {
+                    const mainEvents = JSON.parse(savedMainEvents)
+                    mainEvents.forEach(mainEvent => {
+                        console.log(`الحدث الرئيسي: ${mainEvent.name} (ID: ${mainEvent.id})`)
+                        if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                            mainEvent.sub_events.forEach(subEvent => {
+                                console.log(`  - الحدث الفرعي: ${subEvent.name} (ID: ${subEvent.id})`)
                             })
                         }
                     })
@@ -90,17 +91,15 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
                 console.log(`عدد الوفود: ${delegations.length}`)
                 console.log(`عدد الأحداث الفرعية: ${subEvents.length}`)
                 
-                // طباعة IDs الأحداث الفرعية
-                console.log('IDs الأحداث الفرعية الموجودة:')
-                subEvents.forEach(subEvent => {
-                    console.log(`- ID: ${subEvent.id}, الاسم: ${subEvent.name}, الحدث الرئيسي: ${subEvent.mainEventName}`)
-                })
-                
-                // طباعة subEventId في الوفود
-                console.log('subEventId في الوفود:')
-                delegations.forEach(delegation => {
-                    console.log(`- وفد ${delegation.delegationHead}: subEventId = ${delegation.subEventId}`)
-                })
+                // طباعة تفاصيل الأحداث الفرعية الحقيقية
+                if (subEvents.length > 0) {
+                    console.log('الأحداث الفرعية الحقيقية:')
+                    subEvents.forEach(subEvent => {
+                        console.log(`- ${subEvent.name} (ID: ${subEvent.id}) - الحدث الرئيسي: ${subEvent.mainEventName}`)
+                    })
+                } else {
+                    console.log('لا توجد أحداث فرعية حقيقية')
+                }
 
                 let updatedCount = 0
 
@@ -146,7 +145,7 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
                             
                             // البحث عن الحدث الرئيسي
                             if (subEvent.mainEventId) {
-                                const mainEvent = mainEvents.find(me => me.id === subEvent.mainEventId)
+                                const mainEvent = eventCategories.find(me => me.id === subEvent.mainEventId)
                                 console.log(`- الحدث الرئيسي الموجود: ${mainEvent ? mainEvent.name : 'غير موجود'}`)
                                 if (mainEvent) {
                                     updatedMember.subEvent.mainEventName = mainEvent.name

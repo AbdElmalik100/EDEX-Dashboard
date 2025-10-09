@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react/dist/iconify.js"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +20,8 @@ import {
 
 const AllMembersFilter = ({ table, data }) => {
     const [open, setOpen] = useState(false)
+    const [mainEvents, setMainEvents] = useState([])
+    const [subEvents, setSubEvents] = useState([])
     const [filters, setFilters] = useState({
         rank: '',
         role: '',
@@ -31,9 +33,84 @@ const AllMembersFilter = ({ table, data }) => {
         departureDate: '',
     })
 
+    // جلب البيانات من localStorage
+    useEffect(() => {
+        const loadEventsData = () => {
+            try {
+                // جلب الأحداث الرئيسية من mainEvents (المصدر الحقيقي)
+                const savedMainEvents = localStorage.getItem('mainEvents')
+                const allSubEvents = []
+                
+                if (savedMainEvents) {
+                    const parsedMainEvents = JSON.parse(savedMainEvents)
+                    setMainEvents(parsedMainEvents)
+                    
+                    // لا نحتاج لأحداث افتراضية - نستخدم الأحداث الحقيقية فقط
+                    
+                    // إضافة أحداث فرعية من mainEvents.sub_events إذا وجدت (البيانات الحقيقية)
+                    parsedMainEvents.forEach(mainEvent => {
+                        if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events) && mainEvent.sub_events.length > 0) {
+                            mainEvent.sub_events.forEach(subEvent => {
+                                allSubEvents.push({
+                                    id: subEvent.id,
+                                    name: subEvent.name,
+                                    mainEventId: mainEvent.id,
+                                    mainEventName: mainEvent.name
+                                })
+                            })
+                        }
+                    })
+                }
+                
+                console.log('=== بيانات الفلتر (الأحداث الحقيقية) ===')
+                console.log('عدد الأحداث الرئيسية:', mainEvents.length)
+                console.log('عدد الأحداث الفرعية:', allSubEvents.length)
+                if (allSubEvents.length > 0) {
+                    console.log('الأحداث الفرعية:')
+                    allSubEvents.forEach((subEvent, index) => {
+                        console.log(`  ${index + 1}. ${subEvent.name} (ID: ${subEvent.id}) - الحدث الرئيسي: ${subEvent.mainEventName}`)
+                    })
+                } else {
+                    console.log('لا توجد أحداث فرعية - يرجى إضافة أحداث فرعية من صفحة إدارة الأحداث')
+                }
+                setSubEvents(allSubEvents)
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الأحداث:', error)
+            }
+        }
+
+        loadEventsData()
+
+        // الاستماع لتغييرات localStorage
+        const handleStorageChange = () => {
+            loadEventsData()
+        }
+
+        window.addEventListener('storage', handleStorageChange)
+        window.addEventListener('eventAdded', handleStorageChange)
+        window.addEventListener('eventUpdated', handleStorageChange)
+        window.addEventListener('eventDeleted', handleStorageChange)
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('eventAdded', handleStorageChange)
+            window.removeEventListener('eventUpdated', handleStorageChange)
+            window.removeEventListener('eventDeleted', handleStorageChange)
+        }
+    }, [])
+
     const applyFilter = (val, fieldName) => {
-        table.getColumn(fieldName)?.setFilterValue(val === "" ? undefined : val)
-        setFilters({ ...filters, [fieldName]: val })
+        console.log('تطبيق الفلتر:', { val, fieldName })
+        
+        // إذا تم اختيار حدث رئيسي جديد، امسح فلتر الحدث الفرعي
+        if (fieldName === 'mainEvent' && val !== filters.mainEvent) {
+            setFilters({ ...filters, [fieldName]: val, subEvent: '' })
+            table.getColumn(fieldName)?.setFilterValue(val === "" ? undefined : val)
+            table.getColumn('subEvent')?.setFilterValue(undefined)
+        } else {
+            setFilters({ ...filters, [fieldName]: val })
+            table.getColumn(fieldName)?.setFilterValue(val === "" ? undefined : val)
+        }
     }
 
 
@@ -161,19 +238,11 @@ const AllMembersFilter = ({ table, data }) => {
                                 <SelectValue placeholder="اختر الحدث الرئيسي" />
                             </SelectTrigger>
                             <SelectContent>
-                                {
-                                    [...new Set(data.map(el => {
-                                        if (el.subEvent && el.subEvent.mainEventName) {
-                                            return el.subEvent.mainEventName
-                                        }
-                                        return null
-                                    }).filter(Boolean))]
-                                        .map((mainEventName, index) => (
-                                            <SelectItem key={index} value={mainEventName}>
-                                                {mainEventName}
-                                            </SelectItem>
-                                        ))
-                                }
+                                {mainEvents.map((event, index) => (
+                                    <SelectItem key={index} value={event.name}>
+                                        {event.name}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -186,19 +255,26 @@ const AllMembersFilter = ({ table, data }) => {
                                 <SelectValue placeholder="اختر الحدث الفرعي" />
                             </SelectTrigger>
                             <SelectContent>
-                                {
-                                    [...new Set(data.map(el => {
-                                        if (el.subEvent && el.subEvent.name) {
-                                            return el.subEvent.name
-                                        }
-                                        return null
-                                    }).filter(Boolean))]
-                                        .map((subEventName, index) => (
-                                            <SelectItem key={index} value={subEventName}>
-                                                {subEventName}
+                                {(() => {
+                                    // إذا كان هناك حدث رئيسي مختار، اعرض فقط الأحداث الفرعية المرتبطة به
+                                    if (filters.mainEvent) {
+                                        const filteredSubEvents = subEvents.filter(subEvent => 
+                                            subEvent.mainEventName === filters.mainEvent
+                                        )
+                                        return filteredSubEvents.map((event, index) => (
+                                            <SelectItem key={index} value={event.name}>
+                                                {event.name}
                                             </SelectItem>
                                         ))
-                                }
+                                    }
+                                    
+                                    // إذا لم يكن هناك حدث رئيسي مختار، اعرض جميع الأحداث الفرعية بدون الحدث الرئيسي
+                                    return subEvents.map((event, index) => (
+                                        <SelectItem key={index} value={event.name}>
+                                            {event.name}
+                                        </SelectItem>
+                                    ))
+                                })()}
                             </SelectContent>
                         </Select>
                     </div>

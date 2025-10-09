@@ -126,6 +126,31 @@ const AllMembers = () => {
                     return updatedMember
                 })
                 
+                console.log('=== بيانات الأعضاء ===')
+                console.log('عدد الأعضاء:', updatedMembers.length)
+                
+                // طباعة تفاصيل الأحداث للأعضاء
+                updatedMembers.forEach((member, index) => {
+                    console.log(`عضو ${index + 1}: ${member.name}`)
+                    console.log('  - subEvent:', member.subEvent)
+                    console.log('  - delegation:', member.delegation)
+                    console.log('  - subEventId:', member.subEventId)
+                })
+                
+                // طباعة الأحداث الرئيسية
+                const mainEvents = JSON.parse(localStorage.getItem('mainEvents') || '[]')
+                console.log('=== الأحداث الرئيسية ===')
+                console.log('عدد الأحداث الرئيسية:', mainEvents.length)
+                mainEvents.forEach(event => {
+                    console.log(`الحدث: ${event.name} (ID: ${event.id})`)
+                    console.log('  - عدد الأحداث الفرعية:', event.subEvents ? event.subEvents.length : 0)
+                    if (event.subEvents) {
+                        event.subEvents.forEach(subEvent => {
+                            console.log(`    * ${subEvent.name} (ID: ${subEvent.id})`)
+                        })
+                    }
+                })
+                
                 setData(updatedMembers)
             } else {
                 setData([])
@@ -182,6 +207,7 @@ const AllMembers = () => {
     })
     const [rowSelection, setRowSelection] = useState({})
     const [globalFilter, setGlobalFilter] = useState('')
+    const [mainEventFilter, setMainEventFilter] = useState('')
 
     const columns = useMemo(
         () => {
@@ -318,10 +344,75 @@ const AllMembers = () => {
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
                     const member = row.original
-                    if (!member.subEvent || !member.subEvent.mainEventName) {
-                        return false
+                    
+                    console.log('فلتر الحدث الرئيسي:', {
+                        filterValue,
+                        memberName: member.name,
+                        subEvent: member.subEvent,
+                        delegation: member.delegation
+                    })
+                    
+                    // البحث في الأحداث الحقيقية
+                    const searchTerm = filterValue.toLowerCase()
+                    
+                    // البحث في subEvent للمعضو
+                    if (member.subEvent && member.subEvent.mainEventName) {
+                        const memberMainEvent = member.subEvent.mainEventName.toLowerCase()
+                        
+                        if (memberMainEvent.includes(searchTerm)) {
+                            console.log('تطابق في الحدث الرئيسي من subEvent:', memberMainEvent)
+                            return true
+                        }
                     }
-                    return member.subEvent.mainEventName.toLowerCase().includes(filterValue.toLowerCase())
+                    
+                    // البحث في delegation.subEventId مع الأحداث الحقيقية
+                    if (member.delegation && member.delegation.subEventId) {
+                        const savedMainEvents = localStorage.getItem('mainEvents')
+                        if (savedMainEvents) {
+                            const mainEvents = JSON.parse(savedMainEvents)
+                            
+                            for (const mainEvent of mainEvents) {
+                                if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                                    for (const subEvent of mainEvent.sub_events) {
+                                        if (subEvent.id === member.delegation.subEventId) {
+                                            const mainEventName = mainEvent.name.toLowerCase()
+                                            
+                                            if (mainEventName.includes(searchTerm)) {
+                                                console.log('تطابق في الحدث الرئيسي من الوفد:', mainEventName)
+                                                return true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // البحث المباشر في subEventId إذا كان العضو عنده
+                    if (member.subEventId) {
+                        const savedMainEvents = localStorage.getItem('mainEvents')
+                        if (savedMainEvents) {
+                            const mainEvents = JSON.parse(savedMainEvents)
+                            
+                            for (const mainEvent of mainEvents) {
+                                if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                                    for (const subEvent of mainEvent.sub_events) {
+                                        if (subEvent.id === member.subEventId) {
+                                            const mainEventName = mainEvent.name.toLowerCase()
+                                            
+                                            if (mainEventName.includes(searchTerm)) {
+                                                console.log('تطابق في الحدث الرئيسي من العضو:', mainEventName)
+                                                return true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log('لم يتم العثور على تطابق في الحدث الرئيسي')
+                    return false
                 },
             },
             {
@@ -333,10 +424,80 @@ const AllMembers = () => {
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
                     const member = row.original
-                    if (!member.subEvent || !member.subEvent.name) {
-                        return false
+                    
+                    console.log('فلتر الحدث الفرعي:', {
+                        filterValue,
+                        memberName: member.name,
+                        subEvent: member.subEvent,
+                        delegation: member.delegation,
+                        memberSubEventId: member.subEventId
+                    })
+                    
+                    // البحث في الأسماء الحقيقية للأحداث الفرعية
+                    console.log('البحث عن الحدث الفرعي:', filterValue)
+                    
+                    // البحث المباشر في الأسماء
+                    const searchTerm = filterValue.toLowerCase()
+                    
+                    // البحث في subEvent للمعضو
+                    if (member.subEvent && member.subEvent.name) {
+                        const memberSubEvent = member.subEvent.name.toLowerCase()
+                        
+                        if (memberSubEvent.includes(searchTerm)) {
+                            console.log('تطابق في الحدث الفرعي:', memberSubEvent)
+                            return true
+                        }
                     }
-                    return member.subEvent.name.toLowerCase().includes(filterValue.toLowerCase())
+                    
+                    // البحث في delegation.subEventId مع الأحداث الحقيقية
+                    if (member.delegation && member.delegation.subEventId) {
+                        // البحث في mainEvents للأحداث الحقيقية
+                        const savedMainEvents = localStorage.getItem('mainEvents')
+                        if (savedMainEvents) {
+                            const mainEvents = JSON.parse(savedMainEvents)
+                            
+                            for (const mainEvent of mainEvents) {
+                                if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                                    for (const subEvent of mainEvent.sub_events) {
+                                        if (subEvent.id === member.delegation.subEventId) {
+                                            const eventName = subEvent.name.toLowerCase()
+                                            
+                                            if (eventName.includes(searchTerm)) {
+                                                console.log('تطابق في الحدث الفرعي من الوفد:', eventName)
+                                                return true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // البحث المباشر في subEventId إذا كان العضو عنده
+                        if (member.subEventId) {
+                            const savedMainEvents = localStorage.getItem('mainEvents')
+                            if (savedMainEvents) {
+                                const mainEvents = JSON.parse(savedMainEvents)
+                                
+                                for (const mainEvent of mainEvents) {
+                                    if (mainEvent.sub_events && Array.isArray(mainEvent.sub_events)) {
+                                        for (const subEvent of mainEvent.sub_events) {
+                                            if (subEvent.id === member.subEventId) {
+                                                const eventName = subEvent.name.toLowerCase()
+                                                
+                                                if (eventName.includes(searchTerm)) {
+                                                    console.log('تطابق في الحدث الفرعي من العضو:', eventName)
+                                                    return true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log('لم يتم العثور على تطابق في الحدث الفرعي')
+                    return false
                 },
             },
             {
@@ -516,11 +677,6 @@ const AllMembers = () => {
         <div className="content">
             <div className="p-6 space-y-6">
 
-            {/* Header */}
-            <div className="mb-4">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">جميع الأعضاء</h1>
-                <p className="text-gray-600">إدارة وعرض جميع أعضاء الوفود</p>
-            </div>
 
             {/* Statistics Cards */}
             <div className="flex gap-2 justify-between">
