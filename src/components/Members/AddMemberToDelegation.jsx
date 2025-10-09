@@ -229,6 +229,15 @@ const AddMemberToDelegation = () => {
 
         }
 
+        // تحديد تاريخ الوصول - استخدم تاريخ وصول الوفد إذا كان موجوداً
+        let arrivalDate = null
+        if (delegationData.arrivalInfo && delegationData.arrivalInfo.arrivalDate) {
+            arrivalDate = delegationData.arrivalInfo.arrivalDate
+        } else {
+            // إذا لم يوجد تاريخ وصول للوفد، استخدم التاريخ الحالي
+            arrivalDate = new Date().toISOString().split('T')[0]
+        }
+
         const newMember = {
             id: `mem_${Date.now()}`,
             rank: data.rank,
@@ -238,7 +247,7 @@ const AddMemberToDelegation = () => {
             job: data.equivalentRole, // للتوافق مع النظام الحالي
             memberStatus: "not_departed",
             nationality: delegationData.nationality, // استخدام الجنسية الحقيقية للوفد
-            arrivalDate: new Date().toISOString().split('T')[0],
+            arrivalDate: arrivalDate, // استخدام تاريخ وصول الوفد
             departureDate: null,
             subEventId: delegationData.subEventId, // إضافة subEventId للعضو
             delegation: delegationData // استخدام بيانات الوفد الحقيقية

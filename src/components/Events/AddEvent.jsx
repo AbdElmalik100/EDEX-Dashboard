@@ -59,36 +59,46 @@ const AddEvent = ({ onEventAdded }) => {
                 const currentPath = window.location.pathname
                 let mainEventName = ''
                 
-                // تحديد اسم الحدث الرئيسي من الـ URL
-                if (currentPath.includes('/edex')) {
-                    mainEventName = 'ايديكس'
-                } else if (currentPath.includes('/equestrianism')) {
-                    mainEventName = 'الفروسية'
-                } else if (currentPath.includes('/brightstar')) {
-                    mainEventName = 'النجم الساطع'
-                } else if (currentPath.includes('/spaceexpo')) {
-                    mainEventName = 'معرض الفضاء'
-                } else if (currentPath.includes('/ben')) {
-                    mainEventName = 'بن تن'
-                } else {
-                    // للأحداث الجديدة، نحاول استخراج الاسم من الـ URL
-                    const pathSegments = currentPath.split('/').filter(segment => segment)
+                // تحديد اسم الحدث الرئيسي من الـ URL (ديناميكي)
+                try {
+                    const eventCategories = JSON.parse(localStorage.getItem('eventCategories') || '[]')
+                    const pathSegments = currentPath.split('/').filter(Boolean)
+                    
                     if (pathSegments.length > 0) {
-                        const eventPath = pathSegments[0]
-                        // البحث في الأحداث المحفوظة
-                        const foundEvent = events.find(e => {
-                            let eventPathFromName = ''
-                            if (e.englishName) {
-                                eventPathFromName = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
-                            } else {
-                                eventPathFromName = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
-                            }
-                            return eventPathFromName === eventPath
+                        const pathEventName = pathSegments[0]
+                        
+                        // البحث عن الحدث الرئيسي المطابق للمسار
+                        const matchingCategory = eventCategories.find(category => {
+                            const categoryPath = category.englishName?.toLowerCase().replace(/\s+/g, '') || 
+                                               category.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                            return categoryPath === pathEventName
                         })
-                        if (foundEvent) {
-                            mainEventName = foundEvent.name
+                        
+                        if (matchingCategory) {
+                            mainEventName = matchingCategory.name
+                        } else {
+                            // للأحداث الجديدة، نحاول استخراج الاسم من الـ URL
+                            const pathSegments = currentPath.split('/').filter(segment => segment)
+                            if (pathSegments.length > 0) {
+                                const eventPath = pathSegments[0]
+                                // البحث في الأحداث المحفوظة
+                                const foundEvent = events.find(e => {
+                                    let eventPathFromName = ''
+                                    if (e.englishName) {
+                                        eventPathFromName = e.englishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
+                                    } else {
+                                        eventPathFromName = e.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                    }
+                                    return eventPathFromName === eventPath
+                                })
+                                if (foundEvent) {
+                                    mainEventName = foundEvent.name
+                                }
+                            }
                         }
                     }
+                } catch (error) {
+                    console.error('خطأ في تحديد اسم الحدث الرئيسي:', error)
                 }
                 
                 // إضافة الحدث الفرعي للحدث الرئيسي

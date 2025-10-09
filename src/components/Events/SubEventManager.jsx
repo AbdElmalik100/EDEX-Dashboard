@@ -307,10 +307,8 @@ const SubEventManager = ({ mainEvent, onSubEventAdded, onSubEventUpdated, onSubE
                                 className="w-full"
                                 onClick={() => {
                                     // التنقل إلى صفحة وفود الحدث الفرعي
-                                    const mainEventPath = mainEvent.name === 'ايديكس' ? 'edex' :
-                                                       mainEvent.name === 'الفروسية' ? 'equestrianism' :
-                                                       mainEvent.name === 'النجم الساطع' ? 'brightstar' :
-                                                       mainEvent.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                    // مسار ديناميكي بناءً على اسم الحدث الرئيسي
+                                    const mainEventPath = mainEvent.name?.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '') || 'event'
                                     navigate(`/${mainEventPath}/${subEvent.id}`)
                                 }}
                             >

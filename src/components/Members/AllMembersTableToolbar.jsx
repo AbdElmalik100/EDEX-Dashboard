@@ -27,18 +27,194 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
                 
                 if (deletedCount > 0) {
                     localStorage.setItem('members', JSON.stringify(validMembers))
+                    // إرسال حدث لتحديث البيانات فوراً
                     window.dispatchEvent(new CustomEvent('memberDeleted'))
+                    window.dispatchEvent(new CustomEvent('localStorageUpdated'))
                     toast.success(`تم حذف ${deletedCount} عضو معلق`)
                     if (onCleanup) onCleanup()
                 } else {
                     toast.info('لا توجد أعضاء معلقة')
                 }
+            } else {
+                toast.warning('لا توجد بيانات للتنظيف')
             }
         } catch (error) {
             console.error('خطأ في تنظيف الأعضاء:', error)
             toast.error('حدث خطأ أثناء تنظيف الأعضاء')
         }
     }
+
+    const updateMemberEventData = () => {
+        try {
+            const savedMembers = localStorage.getItem('members')
+            const savedDelegations = localStorage.getItem('delegations')
+            const savedEventCategories = localStorage.getItem('eventCategories')
+
+            if (savedMembers && savedMembers !== '[]') {
+                const members = JSON.parse(savedMembers)
+                const delegations = savedDelegations ? JSON.parse(savedDelegations) : []
+                
+                // استخراج الأحداث الفرعية من eventCategories
+                let subEvents = []
+                if (savedEventCategories) {
+                    const eventCategories = JSON.parse(savedEventCategories)
+                    eventCategories.forEach(category => {
+                        if (category.events && Array.isArray(category.events)) {
+                            category.events.forEach(event => {
+                                subEvents.push({
+                                    id: event.id,
+                                    name: event.name,
+                                    mainEventId: category.id,
+                                    mainEventName: category.name
+                                })
+                            })
+                        }
+                    })
+                }
+                
+                // طباعة تفاصيل eventCategories
+                console.log('تفاصيل eventCategories:')
+                if (savedEventCategories) {
+                    const eventCategories = JSON.parse(savedEventCategories)
+                    eventCategories.forEach(category => {
+                        console.log(`الحدث الرئيسي: ${category.name} (ID: ${category.id})`)
+                        if (category.events && Array.isArray(category.events)) {
+                            category.events.forEach(event => {
+                                console.log(`  - الحدث الفرعي: ${event.name} (ID: ${event.id})`)
+                            })
+                        }
+                    })
+                }
+
+                console.log(`عدد الأعضاء: ${members.length}`)
+                console.log(`عدد الوفود: ${delegations.length}`)
+                console.log(`عدد الأحداث الفرعية: ${subEvents.length}`)
+                
+                // طباعة IDs الأحداث الفرعية
+                console.log('IDs الأحداث الفرعية الموجودة:')
+                subEvents.forEach(subEvent => {
+                    console.log(`- ID: ${subEvent.id}, الاسم: ${subEvent.name}, الحدث الرئيسي: ${subEvent.mainEventName}`)
+                })
+                
+                // طباعة subEventId في الوفود
+                console.log('subEventId في الوفود:')
+                delegations.forEach(delegation => {
+                    console.log(`- وفد ${delegation.delegationHead}: subEventId = ${delegation.subEventId}`)
+                })
+
+                let updatedCount = 0
+
+                // تحديث معلومات الأحداث للأعضاء
+                const updatedMembers = members.map(member => {
+                    let updatedMember = { ...member }
+                    let needsUpdate = false
+
+                    console.log(`فحص العضو: ${member.name}`)
+                    console.log(`- subEventId في العضو: ${member.subEventId}`)
+                    console.log(`- delegation ID: ${member.delegation?.id}`)
+                    
+                    // البحث عن الحدث الفرعي
+                    const foundSubEvent = subEvents.find(se => se.id == member.subEventId)
+                    console.log(`- الحدث الفرعي المطابق: ${foundSubEvent ? foundSubEvent.name : 'غير موجود'}`)
+
+                    // البحث عن معلومات الحدث الرئيسي والفرعي من خلال الوفد
+                    let subEventId = member.subEventId // من العضو مباشرة
+                    
+                    // إذا لم يوجد subEventId في العضو، ابحث في الوفد
+                    if (!subEventId && member.delegation && member.delegation.id) {
+                        const delegation = delegations.find(d => d.id === member.delegation.id)
+                        console.log(`- الوفد الموجود: ${delegation ? 'موجود' : 'غير موجود'}`)
+                        if (delegation) {
+                            console.log(`- subEventId في الوفد: ${delegation.subEventId}`)
+                            if (delegation.subEventId) {
+                                subEventId = delegation.subEventId
+                                needsUpdate = true
+                                console.log(`- تم أخذ subEventId من الوفد: ${subEventId}`)
+                            }
+                        }
+                    }
+                    
+                    if (subEventId) {
+                        const subEvent = subEvents.find(se => se.id == subEventId) // استخدام == للتحويل بين string و number
+                        console.log(`- الحدث الفرعي الموجود: ${subEvent ? subEvent.name : 'غير موجود'}`)
+                        if (subEvent) {
+                            updatedMember.subEvent = {
+                                id: subEvent.id,
+                                name: subEvent.name,
+                                mainEventId: subEvent.mainEventId
+                            }
+                            
+                            // البحث عن الحدث الرئيسي
+                            if (subEvent.mainEventId) {
+                                const mainEvent = mainEvents.find(me => me.id === subEvent.mainEventId)
+                                console.log(`- الحدث الرئيسي الموجود: ${mainEvent ? mainEvent.name : 'غير موجود'}`)
+                                if (mainEvent) {
+                                    updatedMember.subEvent.mainEventName = mainEvent.name
+                                }
+                            }
+                            
+                            if (needsUpdate) {
+                                updatedMember.subEventId = subEventId
+                                updatedCount++
+                                console.log(`- تم تحديث العضو: ${member.name}`)
+                            }
+                        }
+                    } else {
+                        console.log(`- لا يوجد subEventId للعضو: ${member.name}`)
+                    }
+
+                    return updatedMember
+                })
+
+                // إذا لم يتم تحديث أي عضو، جرب إصلاح الـ IDs
+                if (updatedCount === 0 && subEvents.length > 0) {
+                    console.log('محاولة إصلاح الـ IDs...')
+                    
+                    // تحديث subEventId في الأعضاء لتطابق أول حدث فرعي
+                    const firstSubEvent = subEvents[0]
+                    const fixedMembers = updatedMembers.map(member => ({
+                        ...member,
+                        subEventId: firstSubEvent.id,
+                        subEvent: {
+                            id: firstSubEvent.id,
+                            name: firstSubEvent.name,
+                            mainEventId: firstSubEvent.mainEventId,
+                            mainEventName: firstSubEvent.mainEventName
+                        }
+                    }))
+                    
+                    // تحديث subEventId في الوفود أيضاً
+                    const fixedDelegations = delegations.map(delegation => ({
+                        ...delegation,
+                        subEventId: firstSubEvent.id
+                    }))
+                    
+                    // حفظ البيانات المحدثة
+                    localStorage.setItem('members', JSON.stringify(fixedMembers))
+                    localStorage.setItem('delegations', JSON.stringify(fixedDelegations))
+                    
+                    // إرسال حدث للتحديث
+                    window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+                    
+                    toast.success(`تم إصلاح الـ IDs لجميع الأعضاء والوفود (${fixedMembers.length} عضو، ${fixedDelegations.length} وفد)`)
+                } else {
+                    // حفظ البيانات المحدثة
+                    localStorage.setItem('members', JSON.stringify(updatedMembers))
+                    
+                    // إرسال حدث للتحديث
+                    window.dispatchEvent(new CustomEvent('localStorageUpdated'))
+                    
+                    toast.success(`تم تحديث بيانات الأحداث لـ ${updatedCount} عضو`)
+                }
+            } else {
+                toast.warning('لا توجد بيانات للأعضاء')
+            }
+        } catch (error) {
+            console.error('خطأ في تحديث بيانات الأحداث:', error)
+            toast.error('حدث خطأ أثناء تحديث بيانات الأحداث')
+        }
+    }
+
 
     return (
         <div className="flex items-center gap-4 justify-between py-4">
@@ -51,15 +227,6 @@ const AllMembersTableToolbar = ({ table, data, onCleanup }) => {
             <div className="flex items-center gap-2">
                 <AllMembersFilter table={table} data={data} />
                 <MembersReportExport data={data} />
-                <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={cleanupOrphanedMembers}
-                    className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                >
-                    <Icon icon="material-symbols:cleaning-services" className="mr-2" />
-                    تنظيف الأعضاء المعلقة
-                </Button>
             </div>
         </div>
     )

@@ -21,7 +21,8 @@ const AllMembersFilter = ({ table, data }) => {
         role: '',
         job: '',
         memberStatus: '',
-        delegation: '',
+        mainEvent: '',
+        subEvent: '',
         arrivalDate: '',
         departureDate: '',
     })
@@ -31,14 +32,6 @@ const AllMembersFilter = ({ table, data }) => {
         setFilters({ ...filters, [fieldName]: val })
     }
 
-    const applyDelegationFilter = (val) => {
-        if (val === "") {
-            table.getColumn("delegation_delegationHead")?.setFilterValue(undefined)
-        } else {
-            table.getColumn("delegation_delegationHead")?.setFilterValue(val)
-        }
-        setFilters({ ...filters, delegation: val })
-    }
 
 
     const clearFilter = () => {
@@ -47,7 +40,8 @@ const AllMembersFilter = ({ table, data }) => {
             role: '',
             job: '',
             memberStatus: '',
-            delegation: '',
+            mainEvent: '',
+            subEvent: '',
             arrivalDate: '',
             departureDate: '',
         })
@@ -93,7 +87,7 @@ const AllMembersFilter = ({ table, data }) => {
                             </Select>
                         </div>
 
-                        {/* الدور */}
+                        {/* الوظيفة */}
                         <div className="grid grid-cols-3 items-center gap-4">
                             <Label htmlFor="role">الوظيفة</Label>
                             <Select dir='rtl' value={filters.role} onValueChange={val => applyFilter(val, 'role')}>
@@ -101,32 +95,34 @@ const AllMembersFilter = ({ table, data }) => {
                                     <SelectValue placeholder="الوظيفة" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="رئيس الوفد">رئيس الوفد</SelectItem>
-                                    <SelectItem value="مسافر">مسافر</SelectItem>
-                                    <SelectItem value="مرافق">مرافق</SelectItem>
-                                    <SelectItem value="مترجم">مترجم</SelectItem>
-                                    <SelectItem value="طبيب">طبيب</SelectItem>
-                                    <SelectItem value="أمن">أمن</SelectItem>
+                                    {
+                                        [...new Set(data.map(el => el.role).filter(Boolean))]
+                                            .map((role, index) => (
+                                                <SelectItem key={index} value={role}>
+                                                    {role}
+                                                </SelectItem>
+                                            ))
+                                    }
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* الوظيفة */}
+                        {/* ما يعادلها */}
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="job">ما يعادلها</Label>
-                            <Select dir='rtl' value={filters.job} onValueChange={val => applyFilter(val, 'job')}>
+                            <Label htmlFor="equivalentRole">ما يعادلها</Label>
+                            <Select dir='rtl' value={filters.job} onValueChange={val => applyFilter(val, 'equivalentRole')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
                                     <SelectValue placeholder="ما يعادلها" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="ضابط">ضابط</SelectItem>
-                                    <SelectItem value="جندي">جندي</SelectItem>
-                                    <SelectItem value="مدني">مدني</SelectItem>
-                                    <SelectItem value="دبلوماسي">دبلوماسي</SelectItem>
-                                    <SelectItem value="طبيب">طبيب</SelectItem>
-                                    <SelectItem value="مهندس">مهندس</SelectItem>
-                                    <SelectItem value="مترجم">مترجم</SelectItem>
-                                    <SelectItem value="أمن">أمن</SelectItem>
+                                    {
+                                        [...new Set(data.map(el => el.equivalentRole).filter(Boolean))]
+                                            .map((equivalentRole, index) => (
+                                                <SelectItem key={index} value={equivalentRole}>
+                                                    {equivalentRole}
+                                                </SelectItem>
+                                            ))
+                                    }
                                 </SelectContent>
                             </Select>
                         </div>
@@ -145,24 +141,50 @@ const AllMembersFilter = ({ table, data }) => {
                             </Select>
                         </div>
 
-                        {/* الوفد */}
+
+                        {/* الحدث الرئيسي */}
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="delegation">اسم الوفد</Label>
-                            <Select dir='rtl' value={filters.delegation} onValueChange={applyDelegationFilter}>
+                            <Label htmlFor="mainEvent">الحدث الرئيسي</Label>
+                            <Select dir='rtl' value={filters.mainEvent} onValueChange={val => applyFilter(val, 'mainEvent')}>
                                 <SelectTrigger className="w-full !ring-0 col-span-2">
-                                    <SelectValue placeholder="اسم الوفد" />
+                                    <SelectValue placeholder="الحدث الرئيسي" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {
                                         [...new Set(data.map(el => {
-                                            if (el.delegation?.nationality && el.delegation?.delegationHead) {
-                                                return `${el.delegation.nationality} - ${el.delegation.delegationHead}`
+                                            if (el.subEvent && el.subEvent.mainEventName) {
+                                                return el.subEvent.mainEventName
                                             }
                                             return null
                                         }).filter(Boolean))]
-                                            .map((delegationDisplayName, index) => (
-                                                <SelectItem key={index} value={delegationDisplayName}>
-                                                    {delegationDisplayName}
+                                            .map((mainEventName, index) => (
+                                                <SelectItem key={index} value={mainEventName}>
+                                                    {mainEventName}
+                                                </SelectItem>
+                                            ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* الحدث الفرعي */}
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="subEvent">الحدث الفرعي</Label>
+                            <Select dir='rtl' value={filters.subEvent} onValueChange={val => applyFilter(val, 'subEvent')}>
+                                <SelectTrigger className="w-full !ring-0 col-span-2">
+                                    <SelectValue placeholder="الحدث الفرعي" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {
+                                        [...new Set(data.map(el => {
+                                            if (el.subEvent && el.subEvent.name) {
+                                                return el.subEvent.name
+                                            }
+                                            return null
+                                        }).filter(Boolean))]
+                                            .map((subEventName, index) => (
+                                                <SelectItem key={index} value={subEventName}>
+                                                    {subEventName}
                                                 </SelectItem>
                                             ))
                                     }

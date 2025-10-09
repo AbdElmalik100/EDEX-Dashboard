@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, getPaginationRowModel } from "@tanstack/react-table"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import { Button } from "@/components/ui/button"
@@ -19,60 +19,81 @@ import { toast } from "sonner"
 const AllMembers = () => {
     const [data, setData] = useState([])
     
-    // دالة تنظيف الأعضاء المعلقة
-    const cleanupOrphanedMembers = () => {
+    // دالة محسنة لتحميل الأعضاء مع تحديث حالة المغادرة
+    const loadMembers = useCallback(() => {
         try {
-            const savedDelegations = localStorage.getItem('delegations')
-            const savedMembers = localStorage.getItem('members')
-            
-            if (savedDelegations && savedMembers) {
-                const delegations = JSON.parse(savedDelegations)
-                const members = JSON.parse(savedMembers)
-                
-                const delegationIds = delegations.map(d => d.id)
-                const validMembers = members.filter(member => {
-                    if (member.delegation && member.delegation.id) {
-                        return delegationIds.includes(member.delegation.id)
-                    }
-                    return true
-                })
-                
-                const deletedCount = members.length - validMembers.length
-                
-                if (deletedCount > 0) {
-                    localStorage.setItem('members', JSON.stringify(validMembers))
-                    window.dispatchEvent(new CustomEvent('memberDeleted'))
-                    toast.success(`تم حذف ${deletedCount} عضو معلق`)
-                    loadMembers() // إعادة تحميل البيانات
-                } else {
-                    toast.info('لا توجد أعضاء معلقة')
-                }
-            }
-        } catch (error) {
-            console.error('خطأ في تنظيف الأعضاء:', error)
-            toast.error('حدث خطأ أثناء تنظيف الأعضاء')
-        }
-    }
-    
-    // تحميل الأعضاء من localStorage
-    useEffect(() => {
-        const loadMembers = () => {
-
             const savedMembers = localStorage.getItem('members')
             const savedDelegations = localStorage.getItem('delegations')
+            const savedEventCategories = localStorage.getItem('eventCategories')
 
-            
             if (savedMembers && savedMembers !== '[]') {
-                try {
-                    const parsedMembers = JSON.parse(savedMembers)
-                    const parsedDelegations = savedDelegations ? JSON.parse(savedDelegations) : []
+                const parsedMembers = JSON.parse(savedMembers)
+                const parsedDelegations = savedDelegations ? JSON.parse(savedDelegations) : []
+                
+                // استخراج الأحداث الفرعية من eventCategories
+                let parsedSubEvents = []
+                if (savedEventCategories) {
+                    const eventCategories = JSON.parse(savedEventCategories)
+                    eventCategories.forEach(category => {
+                        if (category.events && Array.isArray(category.events)) {
+                            category.events.forEach(event => {
+                                parsedSubEvents.push({
+                                    id: event.id,
+                                    name: event.name,
+                                    mainEventId: category.id,
+                                    mainEventName: category.name
+                                })
+                            })
+                        }
+                    })
+                }
 
+                // تحديث حالة الأعضاء وتواريخ الوصول
+                const updatedMembers = parsedMembers.map(member => {
+                    // تحديث حالة المغادرة من البيانات المحفوظة مسبقاً
+                    if (member.memberStatus && member.departureDate) {
+                        return member // البيانات محدثة بالفعل
+                    }
+
+                    let updatedMember = { ...member }
+
+                    // البحث عن معلومات الحدث الرئيسي والفرعي من خلال الوفد
+                    let subEventId = member.subEventId // من العضو مباشرة
                     
-                    // تحديث حالة الأعضاء بناءً على جلسات المغادرة
-                    const updatedMembers = parsedMembers.map(member => {
-                        if (member.delegation && member.delegation.id) {
-                            const delegation = parsedDelegations.find(d => d.id === member.delegation.id)
-                            if (delegation && delegation.departureInfo && delegation.departureInfo.departureSessions) {
+                    // إذا لم يوجد subEventId في العضو، ابحث في الوفد
+                    if (!subEventId && member.delegation && member.delegation.id) {
+                        const delegation = parsedDelegations.find(d => d.id === member.delegation.id)
+                        if (delegation && delegation.subEventId) {
+                            subEventId = delegation.subEventId
+                        }
+                    }
+                    
+                    if (subEventId) {
+                        const subEvent = parsedSubEvents.find(se => se.id == subEventId) // استخدام == للتحويل بين string و number
+                        if (subEvent) {
+                            updatedMember.subEvent = {
+                                id: subEvent.id,
+                                name: subEvent.name,
+                                mainEventId: subEvent.mainEventId
+                            }
+                            
+                            // البحث عن الحدث الرئيسي (البيانات موجودة بالفعل في subEvent.mainEventName)
+                            // لا حاجة للبحث في parsedMainEvents
+                        }
+                    }
+
+                    // البحث عن حالة المغادرة من جلسات المغادرة
+                    if (member.delegation && member.delegation.id) {
+                        const delegation = parsedDelegations.find(d => d.id === member.delegation.id)
+                        
+                        if (delegation) {
+                            // تحديث تاريخ الوصول من بيانات الوفد إذا لم يكن موجود للعضو
+                            if (!member.arrivalDate && delegation.arrivalInfo && delegation.arrivalInfo.arrivalDate) {
+                                updatedMember.arrivalDate = delegation.arrivalInfo.arrivalDate
+                            }
+                            
+                            // تحديث حالة المغادرة
+                            if (delegation.departureInfo && delegation.departureInfo.departureSessions) {
                                 // البحث عن العضو في جلسات المغادرة
                                 let departureDate = null
                                 let isInDepartureSession = false
@@ -92,104 +113,66 @@ const AllMembers = () => {
                                     }
                                 }
                                 
-                                return {
-                                    ...member,
-                                    memberStatus: isInDepartureSession ? "departed" : "not_departed",
-                                    departureDate: departureDate
-                                }
+                                updatedMember.memberStatus = isInDepartureSession ? "departed" : "not_departed"
+                                updatedMember.departureDate = departureDate
                             }
                         }
-                        return { ...member, memberStatus: "not_departed", departureDate: null }
-                    })
-                    
-                    // عرض بيانات الوفد لكل عضو
-                    updatedMembers.forEach(member => {
-                        if (member.delegation) {
-
-                        }
-                    })
-                    
-                    if (Array.isArray(updatedMembers)) {
-                        setData(updatedMembers)
-
-                    } else {
-                        setData([])
                     }
-                } catch (error) {
-                    console.error('خطأ في تحليل بيانات الأعضاء:', error)
-                    setData([])
-                }
+                    
+                    // تعيين القيم الافتراضية
+                    updatedMember.memberStatus = updatedMember.memberStatus || "not_departed"
+                    updatedMember.departureDate = updatedMember.departureDate || null
+                    
+                    return updatedMember
+                })
+                
+                setData(updatedMembers)
             } else {
-
                 setData([])
             }
-        }
-        
-        loadMembers()
-        
-        // الاستماع لتغييرات localStorage
-        const handleStorageChange = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('storage', handleStorageChange)
-        
-        // فحص دوري للتغييرات (للتطوير)
-        const interval = setInterval(loadMembers, 1000)
-        
-        // إضافة event listener للتحديث عند إضافة عضو جديد
-        const handleMemberAdded = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('memberAdded', handleMemberAdded)
-        
-        // إضافة event listener للتحديث عند تغيير localStorage
-        const handleStorageUpdate = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('storage', handleStorageUpdate)
-        
-        // إضافة event listener إضافي
-        const handleLocalStorageUpdate = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('localStorageUpdated', handleLocalStorageUpdate)
-        
-        // إضافة event listener لحذف العضو
-        const handleMemberDeleted = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('memberDeleted', handleMemberDeleted)
-        
-        // إضافة event listener لتحديث العضو
-        const handleMemberUpdated = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('memberUpdated', handleMemberUpdated)
-        
-        // إضافة event listener لتحديث الوفد
-        const handleDelegationUpdated = () => {
-            loadMembers()
-        }
-        
-        window.addEventListener('delegationUpdated', handleDelegationUpdated)
-        
-        return () => {
-            window.removeEventListener('storage', handleStorageChange)
-            window.removeEventListener('storage', handleStorageUpdate)
-            window.removeEventListener('memberAdded', handleMemberAdded)
-            window.removeEventListener('localStorageUpdated', handleLocalStorageUpdate)
-            window.removeEventListener('memberDeleted', handleMemberDeleted)
-            window.removeEventListener('memberUpdated', handleMemberUpdated)
-            window.removeEventListener('delegationUpdated', handleDelegationUpdated)
-            clearInterval(interval)
+        } catch (error) {
+            console.error('خطأ في تحليل بيانات الأعضاء:', error)
+            setData([])
         }
     }, [])
+
+    // تحميل البيانات عند تشغيل المكون
+    useEffect(() => {
+        loadMembers()
+    }, [loadMembers])
+
+    // الاستماع للتحديثات الفورية - تحديث فوري بدون refresh
+    useEffect(() => {
+        // دالة موحدة للتعامل مع جميع التحديثات
+        const handleDataUpdate = () => {
+            console.log('تحديث بيانات الأعضاء...')
+            loadMembers()
+        }
+
+        // إضافة جميع event listeners للتحديث الفوري
+        const eventListeners = [
+            'storage',
+            'memberAdded', 
+            'memberUpdated',
+            'memberDeleted',
+            'delegationAdded',
+            'delegationUpdated',
+            'delegationDeleted',
+            'localStorageUpdated'
+        ]
+
+        // إضافة جميع الـ event listeners
+        eventListeners.forEach(eventName => {
+            window.addEventListener(eventName, handleDataUpdate)
+        })
+
+        // تنظيف الـ event listeners عند إلغاء المكون
+        return () => {
+            eventListeners.forEach(eventName => {
+                window.removeEventListener(eventName, handleDataUpdate)
+            })
+        }
+    }, [loadMembers])
     
     const [sorting, setSorting] = useState([])
     const [columnFilters, setColumnFilters] = useState([])
@@ -236,7 +219,7 @@ const AllMembers = () => {
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
                     const status = row.getValue(columnId)
-                    return status && status.toLowerCase().includes(filterValue.toLowerCase())
+                    return status === filterValue
                 },
             },
             {
@@ -291,38 +274,16 @@ const AllMembers = () => {
                 },
             },
             {
-                accessorKey: "job",
-                header: () => <div className="text-center">ما يعادلها (قديم)</div>,
-                cell: ({ row }) => (
-                    <div className="text-center">
-                        <span className="text-gray-700">{row.getValue("job") || "غير محدد"}</span>
-                    </div>
-                ),
-                filterFn: (row, columnId, filterValue) => {
-                    if (!filterValue) return true
-                    const job = row.getValue(columnId)
-                    return job && job.toLowerCase().includes(filterValue.toLowerCase())
-                },
-                // إخفاء العمود من العرض
-                enableHiding: false,
-                meta: {
-                    isHidden: true
-                }
-            },
-            {
                 accessorKey: "delegation.delegationHead",
                 header: () => <div className="text-center">اسم الوفد</div>,
                 cell: ({ row }) => {
                     const delegationData = row.original.delegation
-
-
                     
                     if (delegationData && delegationData.nationality && delegationData.delegationHead) {
                         const displayText = `${delegationData.nationality} - ${delegationData.delegationHead}`
-
                         return (
                             <div className="text-center">
-                                <span className="text-gray-700">
+                                <span className="text-gray-700 font-medium">
                                     {displayText}
                                 </span>
                             </div>
@@ -331,7 +292,7 @@ const AllMembers = () => {
 
                     return (
                         <div className="text-center">
-                            <span className="text-gray-400">بدون وفد</span>
+                            <span className="text-gray-400 italic">بدون وفد</span>
                         </div>
                     )
                 },
@@ -347,31 +308,109 @@ const AllMembers = () => {
                     return delegationDisplayName.toLowerCase().includes(filterValue.toLowerCase())
                 },
             },
+            // أعمدة مخفية للفلاتر فقط
+            {
+                accessorKey: "mainEvent",
+                header: () => null,
+                cell: () => null,
+                enableHiding: false,
+                enableSorting: false,
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const member = row.original
+                    if (!member.subEvent || !member.subEvent.mainEventName) {
+                        return false
+                    }
+                    return member.subEvent.mainEventName.toLowerCase().includes(filterValue.toLowerCase())
+                },
+            },
+            {
+                accessorKey: "subEvent",
+                header: () => null,
+                cell: () => null,
+                enableHiding: false,
+                enableSorting: false,
+                filterFn: (row, columnId, filterValue) => {
+                    if (!filterValue) return true
+                    const member = row.original
+                    if (!member.subEvent || !member.subEvent.name) {
+                        return false
+                    }
+                    return member.subEvent.name.toLowerCase().includes(filterValue.toLowerCase())
+                },
+            },
             {
                 accessorKey: "arrivalDate",
                 header: () => <div className="text-center">تاريخ الوصول</div>,
-                cell: ({ row }) => (
-                    <div className="text-center">
-                        <span className="text-gray-700">{row.getValue("arrivalDate") || "غير محدد"}</span>
-                    </div>
-                ),
+                cell: ({ row }) => {
+                    const member = row.original
+                    const memberArrivalDate = member.arrivalDate
+                    
+                    // إذا كان للعضو تاريخ وصول محدد، استخدمه
+                    if (memberArrivalDate) {
+                        return (
+                            <div className="text-center">
+                            <span className="text-gray-700">
+                                {new Date(memberArrivalDate).toLocaleDateString('en-GB')}
+                            </span>
+                            </div>
+                        )
+                    }
+                    
+                    // إذا لم يكن للعضو تاريخ وصول، استخدم تاريخ وصول الوفد
+                    if (member.delegation && member.delegation.arrivalDate) {
+                        return (
+                            <div className="text-center">
+                                <span className="text-gray-700">
+                                    {new Date(member.delegation.arrivalDate).toLocaleDateString('en-GB')}
+                                </span>
+                            </div>
+                        )
+                    }
+                    
+                    // إذا لم يوجد تاريخ وصول للوفد أيضاً، ابحث في بيانات الوفد الكاملة
+                    try {
+                        const savedDelegations = localStorage.getItem('delegations')
+                        if (savedDelegations) {
+                            const delegations = JSON.parse(savedDelegations)
+                            const delegation = delegations.find(d => d.id === member.delegation?.id)
+                            
+                            if (delegation && delegation.arrivalInfo && delegation.arrivalInfo.arrivalDate) {
+                                return (
+                                    <div className="text-center">
+                                        <span className="text-gray-700">
+                                            {new Date(delegation.arrivalInfo.arrivalDate).toLocaleDateString('en-GB')}
+                                        </span>
+                                    </div>
+                                )
+                            }
+                        }
+                    } catch (error) {
+                        console.error('خطأ في جلب تاريخ وصول الوفد:', error)
+                    }
+                    
+                    return (
+                        <div className="text-center">
+                            <span className="text-gray-400">غير محدد</span>
+                        </div>
+                    )
+                },
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue) return true
                     
                     const rowDateString = row.getValue(columnId)
                     if (!rowDateString) return false
                     
-                    const rowDate = new Date(rowDateString)
-                    if (isNaN(rowDate.getTime())) return false
-                    
-                    // Single date filter
-                    if (typeof filterValue === 'string') {
+                    try {
+                        const rowDate = new Date(rowDateString)
                         const filterDate = new Date(filterValue)
-                        if (isNaN(filterDate.getTime())) return false
+                        
+                        if (isNaN(rowDate.getTime()) || isNaN(filterDate.getTime())) return false
+                        
                         return rowDate.toDateString() === filterDate.toDateString()
+                    } catch (error) {
+                        return false
                     }
-                    
-                    return true
                 },
             },
             {
@@ -383,7 +422,9 @@ const AllMembers = () => {
 
                     return (
                         <div className="text-center">
-                            <span className="text-gray-700">{departureDate || "لم يغادر"}</span>
+                            <span className={departureDate ? "text-gray-700" : "text-gray-400"}>
+                                {departureDate ? new Date(departureDate).toLocaleDateString('en-GB') : "لم يغادر"}
+                            </span>
                         </div>
                     )
                 },
@@ -393,17 +434,16 @@ const AllMembers = () => {
                     const rowDateString = row.getValue(columnId)
                     if (!rowDateString) return false
                     
-                    const rowDate = new Date(rowDateString)
-                    if (isNaN(rowDate.getTime())) return false
-                    
-                    // Single date filter
-                    if (typeof filterValue === 'string') {
+                    try {
+                        const rowDate = new Date(rowDateString)
                         const filterDate = new Date(filterValue)
-                        if (isNaN(filterDate.getTime())) return false
+                        
+                        if (isNaN(rowDate.getTime()) || isNaN(filterDate.getTime())) return false
+                        
                         return rowDate.toDateString() === filterDate.toDateString()
+                    } catch (error) {
+                        return false
                     }
-                    
-                    return true
                 },
             },
             {
@@ -471,9 +511,16 @@ const AllMembers = () => {
     const departedMembers = data.filter(member => member.memberStatus === "departed").length
     const notDepartedMembers = data.filter(member => member.memberStatus === "not_departed").length
 
+
     return (
         <div className="content">
             <div className="p-6 space-y-6">
+
+            {/* Header */}
+            <div className="mb-4">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">جميع الأعضاء</h1>
+                <p className="text-gray-600">إدارة وعرض جميع أعضاء الوفود</p>
+            </div>
 
             {/* Statistics Cards */}
             <div className="flex gap-2 justify-between">
@@ -482,7 +529,7 @@ const AllMembers = () => {
                         <span className="text-neutral-600">إجمالي الأعضاء</span>
                         <h2 className="text-blue-700 font-bold text-5xl">{totalMembers}</h2>
                         <span className="text-neutral-400 text-xs">
-                            اخر تحديث منذ {new Date().toLocaleDateString()}
+                            آخر تحديث: {new Date().toLocaleDateString('en-GB')}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-blue-100 grid place-items-center">
@@ -494,7 +541,7 @@ const AllMembers = () => {
                         <span className="text-neutral-600">الأعضاء المغادرين</span>
                         <h2 className="text-green-700 font-bold text-5xl">{departedMembers}</h2>
                         <span className="text-neutral-400 text-xs">
-                            اخر تحديث منذ {new Date().toLocaleDateString()}
+                            آخر تحديث: {new Date().toLocaleDateString('en-GB')}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-green-100 grid place-items-center">
@@ -506,7 +553,7 @@ const AllMembers = () => {
                         <span className="text-neutral-600">الأعضاء الذين لم يغادروا</span>
                         <h2 className="text-red-700 font-bold text-5xl">{notDepartedMembers}</h2>
                         <span className="text-neutral-400 text-xs">
-                            اخر تحديث منذ {new Date().toLocaleDateString()}
+                            آخر تحديث: {new Date().toLocaleDateString('en-GB')}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-red-100 grid place-items-center">
@@ -517,7 +564,7 @@ const AllMembers = () => {
 
             {/* Table */}
             <div className='border p-4 mt-8 border-neutral-300 rounded-2xl bg-white'>
-                <AllMembersTableToolbar table={table} data={data} />
+                <AllMembersTableToolbar table={table} data={data} onCleanup={loadMembers} />
                 <DataTable table={table} columns={columns} clickableRow={false} />
             </div>
             </div>

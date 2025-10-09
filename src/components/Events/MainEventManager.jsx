@@ -27,7 +27,20 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
 
     const validationSchema = yup.object({
         name: yup.string().required("اسم الحدث مطلوب"),
-        englishName: yup.string().required("الاسم الإنجليزي مطلوب"),
+        englishName: yup.string()
+            .required("الاسم الإنجليزي مطلوب")
+            .test('unique-english-name', 'الاسم الإنجليزي مستخدم بالفعل', function(value) {
+                if (!value) return true
+                
+                // تحقق من التكرار في الأحداث الموجودة
+                const existingEvent = mainEvents.find(event => 
+                    event.englishName?.toLowerCase() === value.toLowerCase() && 
+                    (!editingEvent || event.id !== editingEvent.id)
+                )
+                
+                return !existingEvent
+            })
+            .matches(/^[a-zA-Z0-9-_]+$/, "يجب أن يحتوي الاسم الإنجليزي على أحرف إنجليزية وأرقام وشرطات فقط"),
         icon: yup.string().required("الأيقونة مطلوبة"),
     })
 
@@ -46,6 +59,17 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
     }, [events])
 
     const onSubmit = handleSubmit((data) => {
+        // التحقق الإضافي من التكرار قبل الحفظ
+        const existingEvent = mainEvents.find(event => 
+            event.englishName?.toLowerCase() === data.englishName.toLowerCase() && 
+            (!editingEvent || event.id !== editingEvent.id)
+        )
+        
+        if (existingEvent) {
+            toast.error("الاسم الإنجليزي مستخدم بالفعل. يرجى اختيار اسم آخر.")
+            return
+        }
+        
         setLoading(true)
         
         setTimeout(() => {
@@ -177,9 +201,15 @@ const MainEventManager = ({ events = [], onEventAdded, onEventUpdated, onEventDe
                                     <Label htmlFor="englishName">الاسم الإنجليزي (للروابط)</Label>
                                     <Input 
                                         id="englishName"
-                                        placeholder="مثال: edex, equestrianism, brightstar"
+                                        placeholder="مثال: edex-2024, military-event, sports-event"
                                         {...register('englishName')}
+                                        className={errors.englishName ? 'border-red-500' : ''}
                                     />
+                                    <div className="text-xs text-gray-500">
+                                        • يجب أن يكون فريد (غير مستخدم من قبل)<br/>
+                                        • أحرف إنجليزية وأرقام وشرطات فقط<br/>
+                                        • سيُستخدم في رابط الصفحة
+                                    </div>
                                     {errors.englishName && (
                                         <span className="text-sm text-red-500">{errors.englishName.message}</span>
                                     )}

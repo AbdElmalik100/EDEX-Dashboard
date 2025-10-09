@@ -211,19 +211,44 @@ export const canAccessPage = (userRole, pagePermissions) => {
 // صلاحيات الصفحات
 export const PAGE_PERMISSIONS = {
     '/': [PERMISSIONS.VIEW_EVENTS],
-    '/edex': [PERMISSIONS.VIEW_DELEGATIONS],
-    '/equestrianism': [PERMISSIONS.VIEW_DELEGATIONS],
-    '/brightstar': [PERMISSIONS.VIEW_DELEGATIONS],
+    // الصلاحيات للأحداث ديناميكية - يتم إضافتها تلقائياً
     '/all-members': [PERMISSIONS.VIEW_MEMBERS],
     '/events-management': [PERMISSIONS.MANAGE_EVENTS],
     '/category/:categoryId': [PERMISSIONS.VIEW_EVENTS],
     '/category/:categoryId/event/:eventId': [PERMISSIONS.VIEW_DELEGATIONS]
 }
 
-// دالة للتحقق من إمكانية الوصول للصفحة الحالية
+// دالة ديناميكية لإضافة صلاحيات الأحداث
+export const getDynamicPagePermissions = (path) => {
+    try {
+        const eventCategories = JSON.parse(localStorage.getItem('eventCategories') || '[]')
+        
+        // البحث عن حدث رئيسي يطابق المسار
+        for (const category of eventCategories) {
+            const categoryPath = category.englishName?.toLowerCase().replace(/\s+/g, '') || 
+                               category.name.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+            
+            if (path.startsWith(`/${categoryPath}`)) {
+                return [PERMISSIONS.VIEW_DELEGATIONS]
+            }
+        }
+        
+        return null
+    } catch (error) {
+        console.error('خطأ في جلب صلاحيات الصفحة الديناميكية:', error)
+        return null
+    }
+}
+
+// دالة للتحقق من إمكانية الوصول للصفحة الحالية (محدثة لدعم ديناميكي)
 export const canAccessCurrentPage = (userRole, currentPath) => {
     // البحث عن الصلاحيات المطلوبة للصفحة
-    const pagePermissions = PAGE_PERMISSIONS[currentPath]
+    let pagePermissions = PAGE_PERMISSIONS[currentPath]
+    
+    // إذا لم توجد صلاحيات ثابتة، جرب الصلاحيات الديناميكية
+    if (!pagePermissions) {
+        pagePermissions = getDynamicPagePermissions(currentPath)
+    }
     
     if (!pagePermissions) return true // إذا لم تكن الصفحة محددة، السماح بالوصول
     

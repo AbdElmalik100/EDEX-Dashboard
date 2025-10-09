@@ -94,15 +94,14 @@ const EventsList = ({ events: customEvents, categoryId, mainEventName, mainEvent
                                     // استخدام الاسم الإنجليزي إذا كان متوفراً
                                     mainEventPath = mainEventEnglishName.toLowerCase().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '')
                                 } else {
-                                    // استخدام الاسم العربي كـ fallback
-                                    mainEventPath = mainEventName === 'ايديكس' ? 'edex' :
-                                                   mainEventName === 'الفروسية' ? 'equestrianism' :
-                                                   mainEventName === 'النجم الساطع' ? 'brightstar' :
-                                                   mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
+                                    // استخدام الاسم العربي كـ fallback (ديناميكي)
+                                    mainEventPath = mainEventName.toLowerCase().replace(/\s+/g, '').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '')
                                 }
                                 navigate(`/${mainEventPath}/${event.id}`)
                             } else {
-                                navigate(`/edex/${event.id}`)
+                                // استخدام مسار افتراضي ديناميكي
+                                const defaultPath = event.mainEventName?.toLowerCase().replace(/\s+/g, '') || 'event'
+                                navigate(`/${defaultPath}/${event.id}`)
                             }
                         }}
                         className="box bg-white w-full border border-neutral-300 rounded-xl flex flex-col transition-all ease-out hover:shadow cursor-pointer hover:border-primary-400"
